@@ -1,5 +1,6 @@
 package com.example.motosync;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -39,7 +40,8 @@ public class MainActivity extends AppCompatActivity {
         btnBookService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Opening Booking Screen...", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, BookingActivity.class);
+                startActivity(intent);
             }
         });
 
