@@ -2,26 +2,28 @@ package com.example.motosync;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-public class MyOrdersActivity extends AppCompatActivity {
+public class ProfileActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_my_orders);
+        setContentView(R.layout.activity_profile);
 
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
+
+        // Page Action Buttons
+        LinearLayout btnChangePassword = findViewById(R.id.btnChangePassword);
+        LinearLayout btnLogoutPage = findViewById(R.id.btnLogoutPage);
 
         // Sidebar Navigation IDs
         LinearLayout navDashboard = findViewById(R.id.navDashboard);
@@ -29,41 +31,46 @@ public class MyOrdersActivity extends AppCompatActivity {
         LinearLayout navMyVehicles = findViewById(R.id.navMyVehicles);
         LinearLayout navMyOrders = findViewById(R.id.navMyOrders);
         LinearLayout navMyInvoices = findViewById(R.id.navMyInvoices);
+        LinearLayout navProfile = findViewById(R.id.navProfile);
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
 
-        // Open Menu.
-        btnMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
-        });
+        // Open Menu
+        if (btnMenu != null) {
+            btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+        }
 
+        // --- PAGE BUTTON CLICKS ---
+        if (btnChangePassword != null) {
+            btnChangePassword.setOnClickListener(v -> Toast.makeText(ProfileActivity.this, "Opening Change Password Form...", Toast.LENGTH_SHORT).show());
+        }
+
+        // Handle Logout from the Page Button
+        if (btnLogoutPage != null) {
+            btnLogoutPage.setOnClickListener(v -> executeLogout());
+        }
+
+        // Handle Logout from the Sidebar Menu
+        if (btnLogoutMenu != null) {
+            btnLogoutMenu.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                executeLogout();
+            });
+        }
+
+        // --- UNIVERSAL SIDEBAR CLICKS ---
         if (navDashboard != null) {
             navDashboard.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(this, MainActivity.class));
-                // Already in MainActivity, no need to start it again
-            });
-        }
-
-
-        // Handle Logout Click
-        if (btnLogoutMenu != null) {
-            btnLogoutMenu.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(MyOrdersActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
-
-                Intent intent = new Intent(MyOrdersActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
                 finish();
             });
         }
+
         if (navBookService != null) {
             navBookService.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(this, BookingActivity.class));
+                finish();
             });
         }
 
@@ -71,6 +78,7 @@ public class MyOrdersActivity extends AppCompatActivity {
             navMyVehicles.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(this, VehiclesActivity.class));
+                finish();
             });
         }
 
@@ -78,6 +86,7 @@ public class MyOrdersActivity extends AppCompatActivity {
             navMyOrders.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(this, MyOrdersActivity.class));
+                finish();
             });
         }
 
@@ -85,7 +94,22 @@ public class MyOrdersActivity extends AppCompatActivity {
             navMyInvoices.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(this, InvoicesActivity.class));
+                finish();
             });
         }
+
+        // Already on Profile, just close the menu
+        if (navProfile != null) {
+            navProfile.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+        }
+    }
+
+    // A helper method to handle routing the user to the login screen
+    private void executeLogout() {
+        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

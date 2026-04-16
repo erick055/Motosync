@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -22,18 +24,17 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
 
-        // 2. Find the Sidebar Buttons we just created in Step 1
+        // 2. Find the Sidebar Buttons
         LinearLayout navDashboard = findViewById(R.id.navDashboard);
         LinearLayout navBookService = findViewById(R.id.navBookService);
         LinearLayout navMyVehicles = findViewById(R.id.navMyVehicles);
         LinearLayout navMyOrders = findViewById(R.id.navMyOrders);
         LinearLayout navMyInvoices = findViewById(R.id.navMyInvoices);
-
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+        LinearLayout navProfile = findViewById(R.id.navProfile);
 
 
         // 3. Add a click listener to the Menu Icon
-
-        // Open Sidebar when the top-left menu icon is clicked
         btnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -43,53 +44,58 @@ public class MainActivity extends AppCompatActivity {
 
         // --- MENU BUTTON CLICKS ---
 
-        // If they click Dashboard, just close the menu (because we are already on the Dashboard!)
-        navDashboard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        if (navDashboard != null) {
+            navDashboard.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-            }
-        });
-
-        // If they click Book Service, close the menu and open the Booking Page
-        navBookService.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+                // Already in MainActivity, no need to start it again
+            });
+        }
+        if (btnLogoutMenu != null) {
+            btnLogoutMenu.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(MainActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
 
-                Intent intent = new Intent(MainActivity.this, BookingActivity.class);
+                // Go back to Login Page
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clears the back history
                 startActivity(intent);
-            }
-        });
+                finish();
+            });
+        }
 
-        navMyVehicles.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        if (navBookService != null) {
+            navBookService.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, BookingActivity.class));
+            });
+        }
 
-                Intent intent = new Intent(MainActivity.this, VehiclesActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        navMyOrders.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v){
+        if (navMyVehicles != null) {
+            navMyVehicles.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, VehiclesActivity.class));
+            });
+        }
 
-                Intent intent = new Intent(MainActivity.this, MyOrdersActivity.class);
-                startActivity(intent);
-            }
-        });
-        navMyInvoices.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v){
+        if (navMyOrders != null) {
+            navMyOrders.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, MyOrdersActivity.class));
+            });
+        }
 
-                Intent intent = new Intent(MainActivity.this, InvoicesActivity.class);
-                startActivity(intent);
-            }
-        });
+        if (navMyInvoices != null) {
+            navMyInvoices.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, InvoicesActivity.class));
+            });
+        }
+        if (navProfile != null) {
+            navProfile.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, ProfileActivity.class));
+            });
+        }
 
     }
 }

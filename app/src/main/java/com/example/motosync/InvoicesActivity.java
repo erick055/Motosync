@@ -32,6 +32,7 @@ public class InvoicesActivity extends AppCompatActivity {
         LinearLayout navMyVehicles = findViewById(R.id.navMyVehicles);
         LinearLayout navMyOrders = findViewById(R.id.navMyOrders);
         LinearLayout navMyInvoices = findViewById(R.id.navMyInvoices);
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
 
         // Open Menu
         if (btnMenu != null) {
@@ -51,37 +52,50 @@ public class InvoicesActivity extends AppCompatActivity {
         if (navDashboard != null) {
             navDashboard.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                startActivity(new Intent(InvoicesActivity.this, MainActivity.class));
-                finish();
+                startActivity(new Intent(this, MainActivity.class));
+                // Already in MainActivity, no need to start it again
             });
         }
 
+
+        // Handle Logout Click
+        if (btnLogoutMenu != null) {
+            btnLogoutMenu.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(InvoicesActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(InvoicesActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            });
+        }
         if (navBookService != null) {
             navBookService.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                startActivity(new Intent(InvoicesActivity.this, BookingActivity.class));
-                finish();
+                startActivity(new Intent(this, BookingActivity.class));
             });
         }
 
         if (navMyVehicles != null) {
             navMyVehicles.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                startActivity(new Intent(InvoicesActivity.this, VehiclesActivity.class));
-                finish();
+                startActivity(new Intent(this, VehiclesActivity.class));
             });
         }
 
         if (navMyOrders != null) {
             navMyOrders.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                startActivity(new Intent(InvoicesActivity.this, MyOrdersActivity.class));
-                finish();
+                startActivity(new Intent(this, MyOrdersActivity.class));
             });
         }
 
         if (navMyInvoices != null) {
-            navMyInvoices.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+            navMyInvoices.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, InvoicesActivity.class));
+            });
         }
     }
 }

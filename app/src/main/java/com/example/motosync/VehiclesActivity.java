@@ -33,6 +33,10 @@ public class VehiclesActivity extends AppCompatActivity {
         LinearLayout navDashboard = findViewById(R.id.navDashboard);
         LinearLayout navBookService = findViewById(R.id.navBookService);
         LinearLayout navMyVehicles = findViewById(R.id.navMyVehicles);
+        LinearLayout navMyOrders = findViewById(R.id.navMyOrders);
+        LinearLayout navMyInvoices = findViewById(R.id.navMyInvoices);
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+
 
         // 1. Setup Menu Drawer
         if (btnMenu != null) {
@@ -43,7 +47,17 @@ public class VehiclesActivity extends AppCompatActivity {
         if (navDashboard != null) {
             navDashboard.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Intent intent = new Intent(VehiclesActivity.this, MainActivity.class);
+                startActivity(new Intent(this, MainActivity.class));
+                // Already in MainActivity, no need to start it again
+            });
+        }
+        if (btnLogoutMenu != null) {
+            btnLogoutMenu.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(VehiclesActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(VehiclesActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();
             });
@@ -52,14 +66,29 @@ public class VehiclesActivity extends AppCompatActivity {
         if (navBookService != null) {
             navBookService.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Intent intent = new Intent(VehiclesActivity.this, BookingActivity.class);
-                startActivity(intent);
-                finish();
+                startActivity(new Intent(this, BookingActivity.class));
             });
         }
 
         if (navMyVehicles != null) {
-            navMyVehicles.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+            navMyVehicles.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, VehiclesActivity.class));
+            });
+        }
+
+        if (navMyOrders != null) {
+            navMyOrders.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, MyOrdersActivity.class));
+            });
+        }
+
+        if (navMyInvoices != null) {
+            navMyInvoices.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, InvoicesActivity.class));
+            });
         }
 
         // 2. Add New Vehicle Click -> SHOW POPUP

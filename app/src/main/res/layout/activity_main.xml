@@ -35,7 +35,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:text="System Name"
+                    android:text="MotoSync"
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -277,12 +277,11 @@
             android:layout_marginBottom="24dp">
 
             <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@android:drawable/ic_menu_directions"
-                app:tint="@color/text_primary"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/motosync_logo"
                 android:background="@drawable/bg_menu_active"
-                android:padding="6dp"/>
+                android:padding="4dp"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -292,16 +291,17 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Name"
+                    android:text="Lee dela rama pallorina"
                     android:textColor="@color/text_primary"
-                    android:textSize="18sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Workshop Management"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="10sp" />
+                    android:text="motosync"
+                    android:textColor="@color/teal_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -322,118 +322,34 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <LinearLayout
-                    android:id="@+id/navDashboard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_menu_active"
-                    android:padding="12dp"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@android:drawable/ic_menu_sort_by_size"
-                        app:tint="#000000" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Dashboard"
-                        android:textColor="#000000"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navDashboard" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_menu_active" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_sort_by_size" app:tint="#000000" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dashboard" android:textColor="#000000" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/navBookService"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_button_dark"
-                    android:padding="12dp"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@android:drawable/ic_menu_my_calendar"
-                        app:tint="@color/text_primary" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Book Service"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navBookService" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_my_calendar" app:tint="@color/text_primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Book Service" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/navMyVehicles"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_button_dark"
-                    android:padding="12dp"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@android:drawable/ic_menu_directions"
-                        app:tint="@color/text_primary" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="My Vehicles"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navMyVehicles" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_directions" app:tint="@color/text_primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="My Vehicles" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/navMyOrders"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_button_dark"
-                    android:padding="12dp"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@android:drawable/ic_menu_agenda"
-                        app:tint="@color/text_primary" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="My Orders"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navMyOrders" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_agenda" app:tint="@color/text_primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="My Orders" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/navMyInvoices"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_button_dark"
-                    android:padding="12dp"
-                    android:gravity="center_vertical">
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@android:drawable/ic_menu_info_details"
-                        app:tint="@color/text_primary" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="My Invoices"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navMyInvoices" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_info_details" app:tint="@color/text_primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="My Invoices" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/navProfile" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_manage" app:tint="@color/text_primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="My Profile" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -447,73 +363,16 @@
             android:layout_marginBottom="16dp"/>
 
         <LinearLayout
+            android:id="@+id/btnLogoutMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="24dp">
-
-            <TextView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@drawable/bg_button_dark"
-                android:text="J"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:gravity="center"/>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="12dp">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Name"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:layout_marginEnd="8dp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_badge_purple"
-                        android:text="Customer"
-                        android:textColor="@color/text_primary"
-                        android:textSize="8sp"
-                        android:paddingHorizontal="6dp"
-                        android:paddingVertical="2dp"/>
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Email"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="10sp" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+            android:padding="12dp"
             android:clickable="true">
             <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:src="@android:drawable/ic_menu_revert"
                 app:tint="@color/danger_red" />
             <TextView
@@ -521,9 +380,9 @@
                 android:layout_height="wrap_content"
                 android:text="LOG OUT"
                 android:textColor="@color/danger_red"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
-                android:layout_marginStart="8dp"/>
+                android:layout_marginStart="12dp"/>
         </LinearLayout>
 
     </LinearLayout>

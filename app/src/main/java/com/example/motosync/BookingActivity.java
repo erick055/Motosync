@@ -42,6 +42,10 @@ public class BookingActivity extends AppCompatActivity {
         LinearLayout navDashboard = findViewById(R.id.navDashboard);
         LinearLayout navBookService = findViewById(R.id.navBookService);
         LinearLayout navMyVehicles = findViewById(R.id.navMyVehicles);
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+        LinearLayout navMyOrders = findViewById(R.id.navMyOrders);
+        LinearLayout navMyInvoices = findViewById(R.id.navMyInvoices);
+
 
         // 1. Setup Menu Drawer
         btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
@@ -59,6 +63,27 @@ public class BookingActivity extends AppCompatActivity {
             }
         });
 
+        if (navMyVehicles != null) {
+            navMyVehicles.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, VehiclesActivity.class));
+            });
+        }
+
+        if (navMyOrders != null) {
+            navMyOrders.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, MyOrdersActivity.class));
+            });
+        }
+
+        if (navMyInvoices != null) {
+            navMyInvoices.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, InvoicesActivity.class));
+            });
+        }
+
         // Already on Booking, just close drawer
         navBookService.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,6 +91,18 @@ public class BookingActivity extends AppCompatActivity {
                 drawerLayout.closeDrawer(GravityCompat.START);
             }
         });
+
+        if (btnLogoutMenu != null) {
+            btnLogoutMenu.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(BookingActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(BookingActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            });
+        }
 
         // (We will connect My Vehicles later once the screen is built!)
 
