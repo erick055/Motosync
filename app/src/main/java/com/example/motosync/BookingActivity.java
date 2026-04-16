@@ -2,6 +2,7 @@ package com.example.motosync;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -37,8 +38,38 @@ public class BookingActivity extends AppCompatActivity {
         tvDate = findViewById(R.id.tvDate);
         tvTime = findViewById(R.id.tvTime);
 
+        // Find Sidebar Menu Items
+        LinearLayout navDashboard = findViewById(R.id.navDashboard);
+        LinearLayout navBookService = findViewById(R.id.navBookService);
+        LinearLayout navMyVehicles = findViewById(R.id.navMyVehicles);
+
         // 1. Setup Menu Drawer
         btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+
+        // --- MENU BUTTON CLICKS ---
+
+        // Go to Dashboard
+        navDashboard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Intent intent = new Intent(BookingActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish(); // Close this page
+            }
+        });
+
+        // Already on Booking, just close drawer
+        navBookService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            }
+        });
+
+        // (We will connect My Vehicles later once the screen is built!)
+
+        // --------------------------
 
         // 2. Populate Dropdowns (Spinners)
         String[] vehicles = {"Choose a vehicle...", "Yamaha R1 (Plate: ABC-123)", "Honda Click 125i (Plate: XYZ-987)"};
@@ -58,7 +89,6 @@ public class BookingActivity extends AppCompatActivity {
 
             DatePickerDialog datePickerDialog = new DatePickerDialog(BookingActivity.this,
                     (view, year1, monthOfYear, dayOfMonth) -> {
-                        // Format: DD/MM/YYYY
                         tvDate.setText(dayOfMonth + "/" + (monthOfYear + 1) + "/" + year1);
                     }, year, month, day);
             datePickerDialog.show();
@@ -72,7 +102,6 @@ public class BookingActivity extends AppCompatActivity {
 
             TimePickerDialog timePickerDialog = new TimePickerDialog(BookingActivity.this,
                     (view, hourOfDay, minuteOfHour) -> {
-                        // Format: HH:MM
                         String time = String.format("%02d:%02d", hourOfDay, minuteOfHour);
                         tvTime.setText(time);
                     }, hour, minute, true);
@@ -81,9 +110,8 @@ public class BookingActivity extends AppCompatActivity {
 
         // 5. Submit Button
         btnConfirmBooking.setOnClickListener(v -> {
-            // Later, we send this data to PHP/MySQL!
             Toast.makeText(BookingActivity.this, "Booking Request Sent!", Toast.LENGTH_LONG).show();
-            finish(); // Returns user to dashboard
+            finish();
         });
     }
 }

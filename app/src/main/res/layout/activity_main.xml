@@ -323,6 +323,7 @@
                 android:orientation="vertical">
 
                 <LinearLayout
+                    android:id="@+id/navDashboard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_menu_active"
@@ -345,6 +346,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/navBookService"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_button_dark"
@@ -367,6 +369,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/navMyVehicles"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_button_dark"

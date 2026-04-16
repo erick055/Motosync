@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -23,32 +22,36 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
 
-        // 2. Find existing buttons
-        LinearLayout btnBookService = findViewById(R.id.btnBookService);
-        LinearLayout btnAddVehicle = findViewById(R.id.btnAddVehicle);
+        // 2. Find the Sidebar Buttons we just created in Step 1
+        LinearLayout navDashboard = findViewById(R.id.navDashboard);
+        LinearLayout navBookService = findViewById(R.id.navBookService);
 
-        // 3. Open Sidebar when menu icon is clicked
+        // Open Sidebar when the top-left menu icon is clicked
         btnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // This slides the drawer out from the left (START) side
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
 
-        // Existing click listeners
-        btnBookService.setOnClickListener(new View.OnClickListener() {
+        // --- MENU BUTTON CLICKS ---
+
+        // If they click Dashboard, just close the menu (because we are already on the Dashboard!)
+        navDashboard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, BookingActivity.class);
-                startActivity(intent);
+                drawerLayout.closeDrawer(GravityCompat.START);
             }
         });
 
-        btnAddVehicle.setOnClickListener(new View.OnClickListener() {
+        // If they click Book Service, close the menu and open the Booking Page
+        navBookService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Opening Add Vehicle Screen...", Toast.LENGTH_SHORT).show();
+                drawerLayout.closeDrawer(GravityCompat.START);
+
+                Intent intent = new Intent(MainActivity.this, BookingActivity.class);
+                startActivity(intent);
             }
         });
     }

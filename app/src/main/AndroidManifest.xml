@@ -23,6 +23,12 @@
             android:name=".SignUpActivity"
             android:exported="false" />
         <activity
+            android:name=".BookingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".VehiclesActivity"
+            android:exported="false" />
+        <activity
             android:name=".SplashActivity"
             android:exported="true">
 
@@ -31,9 +37,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".BookingActivity"
-            android:exported="false" />
 
     </application>
 
