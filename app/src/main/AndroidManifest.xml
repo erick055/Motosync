@@ -29,6 +29,12 @@
             android:name=".VehiclesActivity"
             android:exported="false" />
         <activity
+            android:name=".MyOrdersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".InvoicesActivity"
+            android:exported="false" />
+        <activity
             android:name=".SplashActivity"
             android:exported="true">
 

@@ -25,6 +25,13 @@ public class MainActivity extends AppCompatActivity {
         // 2. Find the Sidebar Buttons we just created in Step 1
         LinearLayout navDashboard = findViewById(R.id.navDashboard);
         LinearLayout navBookService = findViewById(R.id.navBookService);
+        LinearLayout navMyVehicles = findViewById(R.id.navMyVehicles);
+        LinearLayout navMyOrders = findViewById(R.id.navMyOrders);
+        LinearLayout navMyInvoices = findViewById(R.id.navMyInvoices);
+
+
+
+        // 3. Add a click listener to the Menu Icon
 
         // Open Sidebar when the top-left menu icon is clicked
         btnMenu.setOnClickListener(new View.OnClickListener() {
@@ -54,5 +61,35 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        navMyVehicles.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+
+                Intent intent = new Intent(MainActivity.this, VehiclesActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        navMyOrders.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                drawerLayout.closeDrawer(GravityCompat.START);
+
+                Intent intent = new Intent(MainActivity.this, MyOrdersActivity.class);
+                startActivity(intent);
+            }
+        });
+        navMyInvoices.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                drawerLayout.closeDrawer(GravityCompat.START);
+
+                Intent intent = new Intent(MainActivity.this, InvoicesActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 }

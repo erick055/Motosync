@@ -13,4 +13,8 @@
     <color name="badge_purple_bg">#8B5CF6</color>
     <color name="login_btn_color">#4F46E5</color>
     <color name="edit_text_bg">#1A1A1A</color>
+    <color name="badge_pending_text">#F59E0B</color>
+    <color name="badge_pending_bg">#452B08</color>
+    <color name="badge_cancelled_text">#EF4444</color>
+    <color name="badge_cancelled_bg">#451515</color>
 </resources>
