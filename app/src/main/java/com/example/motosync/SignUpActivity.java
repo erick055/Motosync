@@ -36,12 +36,16 @@ public class SignUpActivity extends AppCompatActivity {
 
         LinearLayout btnSignUp = findViewById(R.id.btnGoToSignUp);
         TextView btnGoToSignIn = findViewById(R.id.btnGoToSignIn);
+        android.widget.RadioGroup rgRole = findViewById(R.id.rgRole);
+
 
         // --- SIGN UP LOGIC ---
         if (btnSignUp != null) {
             btnSignUp.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Toast.makeText(SignUpActivity.this, "Connecting to Database...", Toast.LENGTH_SHORT).show();
+
                     String name = etFullName.getText().toString().trim();
                     String email = etSignUpEmail.getText().toString().trim();
                     String password = etSignUpPassword.getText().toString().trim();
@@ -52,24 +56,26 @@ public class SignUpActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // 2. Generate a unique random ID for the new user
+                    // 2. Determine Selected Role
+                    String selectedRole = "customer"; // Default
+                    if (rgRole.getCheckedRadioButtonId() == R.id.rbAdmin) {
+                        selectedRole = "admin";
+                    }
+
+                    // 3. Generate a unique random ID
                     String userId = mDatabase.child("Users").push().getKey();
 
-                    // 3. Create the User object (Defaulting role to 'customer')
-                    User newUser = new User(name, email, "customer");
+                    // 4. Create the User object WITH the selected role
+                    User newUser = new User(name, email, password, selectedRole);
 
-                    // 4. Save to Firebase under Users -> [unique_id]
+                    // 5. Save to Firebase
                     if (userId != null) {
                         mDatabase.child("Users").child(userId).setValue(newUser)
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
                                         Toast.makeText(SignUpActivity.this, "Account Created Successfully!", Toast.LENGTH_SHORT).show();
-
-                                        // Move to Dashboard
-                                        Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
-                                        startActivity(intent);
-                                        finish();
+                                        finish(); // Send them back to Login to sign in!
                                     }
                                 })
                                 .addOnFailureListener(new OnFailureListener() {
