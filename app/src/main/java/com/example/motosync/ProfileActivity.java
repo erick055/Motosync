@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -33,6 +34,25 @@ public class ProfileActivity extends AppCompatActivity {
         LinearLayout navMyInvoices = findViewById(R.id.navMyInvoices);
         LinearLayout navProfile = findViewById(R.id.navProfile);
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+
+        // --- FETCH AND DISPLAY USER DATA ---
+        android.content.SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+        String savedName = prefs.getString("FULL_NAME", "Customer");
+        String savedRole = prefs.getString("ROLE", "motosync");
+
+        TextView tvSidebarName = findViewById(R.id.tvSidebarName);
+        TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
+
+        if (tvSidebarName != null) {
+            tvSidebarName.setText(savedName);
+        }
+
+        // Optional: Capitalize the first letter of the role (e.g., "customer" -> "Customer")
+        if (tvSidebarRole != null && savedRole.length() > 0) {
+            String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
+            tvSidebarRole.setText(displayRole + " Account");
+        }
+        // -----------------------------------
 
         // Open Menu
         if (btnMenu != null) {

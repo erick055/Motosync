@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,7 +24,37 @@ public class MainActivity extends AppCompatActivity {
         // 1. Find the Drawer Layout and the Menu Icon
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
+        // --- FETCH AND DISPLAY USER DATA ---
+        android.content.SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+        String savedName = prefs.getString("FULL_NAME", "Customer");
+        String savedRole = prefs.getString("ROLE", "motosync");
 
+        // Find the TextViews
+        android.widget.TextView tvSidebarName = findViewById(R.id.tvSidebarName);
+        android.widget.TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
+        android.widget.TextView tvWelcomeMessage = findViewById(R.id.tvWelcomeMessage);
+
+        // 1. Set the Full Name in the Sidebar
+        if (tvSidebarName != null) {
+            tvSidebarName.setText(savedName);
+        }
+
+        // 2. Set the Role in the Sidebar (Capitalize the first letter)
+        if (tvSidebarRole != null && savedRole.length() > 0) {
+            String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
+            tvSidebarRole.setText(displayRole + " Account");
+        }
+
+        // 3. Set the "Welcome back" message using only the First Name
+        if (tvWelcomeMessage != null) {
+            String firstName = savedName;
+            // If the name contains a space, cut it off at the first space
+            if (savedName.contains(" ")) {
+                firstName = savedName.substring(0, savedName.indexOf(" "));
+            }
+            tvWelcomeMessage.setText("Welcome back, " + firstName);
+        }
+        // -----------------------------------
         // 2. Find the Sidebar Buttons
         LinearLayout navDashboard = findViewById(R.id.navDashboard);
         LinearLayout navBookService = findViewById(R.id.navBookService);

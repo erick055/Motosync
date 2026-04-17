@@ -38,6 +38,25 @@ public class BookingActivity extends AppCompatActivity {
         tvDate = findViewById(R.id.tvDate);
         tvTime = findViewById(R.id.tvTime);
 
+        // --- FETCH AND DISPLAY USER DATA ---
+        android.content.SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+        String savedName = prefs.getString("FULL_NAME", "Customer");
+        String savedRole = prefs.getString("ROLE", "motosync");
+
+        TextView tvSidebarName = findViewById(R.id.tvSidebarName);
+        TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
+
+        if (tvSidebarName != null) {
+            tvSidebarName.setText(savedName);
+        }
+
+        // Optional: Capitalize the first letter of the role (e.g., "customer" -> "Customer")
+        if (tvSidebarRole != null && savedRole.length() > 0) {
+            String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
+            tvSidebarRole.setText(displayRole + " Account");
+        }
+        // -----------------------------------
+
         // Find Sidebar Menu Items
         LinearLayout navDashboard = findViewById(R.id.navDashboard);
         LinearLayout navBookService = findViewById(R.id.navBookService);

@@ -91,6 +91,13 @@ public class LoginActivity extends AppCompatActivity {
                                         return;
                                     }
 
+                                    android.content.SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+                                    android.content.SharedPreferences.Editor editor = prefs.edit();
+                                    editor.putString("FULL_NAME", user.fullName);
+                                    editor.putString("EMAIL", user.email);
+                                    editor.putString("ROLE", user.role);
+                                    editor.apply();
+
                                     Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
 
                                     if ("admin".equals(user.role)) {
