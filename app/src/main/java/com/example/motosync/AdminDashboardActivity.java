@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -21,15 +22,33 @@ public class AdminDashboardActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
 
-        // Quick Action Buttons
+        // --- FETCH AND DISPLAY ADMIN DATA ---
+        android.content.SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+        String savedName = prefs.getString("FULL_NAME", "Admin Name");
+        String savedRole = prefs.getString("ROLE", "admin");
+
+        TextView tvSidebarName = findViewById(R.id.tvSidebarName);
+        TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
+
+        if (tvSidebarName != null) {
+            tvSidebarName.setText(savedName);
+        }
+        if (tvSidebarRole != null && savedRole.length() > 0) {
+            String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
+            tvSidebarRole.setText(displayRole + " Account");
+        }
+        // -----------------------------------
+
+        // Quick Action Page Buttons
         LinearLayout btnApproveOrder = findViewById(R.id.btnApproveOrder);
         LinearLayout btnDeclineOrder = findViewById(R.id.btnDeclineOrder);
 
         // Admin Sidebar Navigation IDs
         LinearLayout navAdminDashboard = findViewById(R.id.navAdminDashboard);
-        LinearLayout navManageOrders = findViewById(R.id.navManageOrders);
+        LinearLayout navManageBookings = findViewById(R.id.navManageBookings);
         LinearLayout navManageCustomers = findViewById(R.id.navManageCustomers);
         LinearLayout navManageServices = findViewById(R.id.navManageServices);
+        LinearLayout navManageReports = findViewById(R.id.navManageReports);
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
 
         // Open Menu
@@ -39,7 +58,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         // --- DASHBOARD ACTIONS ---
         if (btnApproveOrder != null) {
-            btnApproveOrder.setOnClickListener(v -> Toast.makeText(AdminDashboardActivity.this, "Order Approved & Moved to Active queue", Toast.LENGTH_SHORT).show());
+            btnApproveOrder.setOnClickListener(v -> Toast.makeText(AdminDashboardActivity.this, "Order Approved!", Toast.LENGTH_SHORT).show());
         }
 
         if (btnDeclineOrder != null) {
@@ -51,11 +70,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
             navAdminDashboard.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
         }
 
-        if (navManageOrders != null) {
-            navManageOrders.setOnClickListener(v -> {
+        if (navManageBookings != null) {
+            navManageBookings.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Opening Manage Orders...", Toast.LENGTH_SHORT).show();
-                // startActivity(new Intent(this, AdminOrdersActivity.class));
+                Toast.makeText(this, "Opening Service Bookings...", Toast.LENGTH_SHORT).show();
             });
         }
 
@@ -69,7 +87,14 @@ public class AdminDashboardActivity extends AppCompatActivity {
         if (navManageServices != null) {
             navManageServices.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Opening Service & Price Editor...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Opening Services & Pricing...", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (navManageReports != null) {
+            navManageReports.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(this, "Opening Financial Reports...", Toast.LENGTH_SHORT).show();
             });
         }
 
@@ -77,7 +102,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         if (btnLogoutMenu != null) {
             btnLogoutMenu.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Admin Logging out...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(this, LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);

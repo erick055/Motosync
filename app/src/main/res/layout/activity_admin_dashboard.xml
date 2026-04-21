@@ -254,16 +254,18 @@
                 android:orientation="vertical"
                 android:layout_marginStart="12dp">
                 <TextView
+                    android:id="@+id/tvSidebarName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Lee dela rama pallorina"
+                    android:text="Loading Name..."
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
                 <TextView
+                    android:id="@+id/tvSidebarRole"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="System Administrator"
+                    android:text="Loading Role..."
                     android:textColor="@color/teal_accent"
                     android:textSize="12sp"
                     android:textStyle="bold"/>
@@ -292,19 +294,24 @@
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Admin Dashboard" android:textColor="#000000" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
-                <LinearLayout android:id="@+id/navManageOrders" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                <LinearLayout android:id="@+id/navManageBookings" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                     <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_agenda" app:tint="@color/text_primary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Manage Orders" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Service Bookings" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/navManageCustomers" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                     <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_myplaces" app:tint="@color/text_primary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Manage Customers" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Customer Directory" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/navManageServices" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                     <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_manage" app:tint="@color/text_primary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Manage Services" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Services &amp; Pricing" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/navManageReports" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_info_details" app:tint="@color/text_primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Invoices &amp; Reports" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
             </LinearLayout>
