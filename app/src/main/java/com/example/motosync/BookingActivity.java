@@ -1,173 +1,166 @@
 package com.example.motosync;
 
-import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import java.util.Calendar;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class BookingActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
-    private TextView tvDate, tvTime;
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_booking);
 
+        // Initialize Firebase pointing to the "Appointments" folder
+        mDatabase = FirebaseDatabase.getInstance().getReference("Appointments");
+
+        // UI Setup
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
-        Spinner spinnerVehicle = findViewById(R.id.spinnerVehicle);
+
+        // THESE NOW MATCH YOUR XML PERFECTLY
         Spinner spinnerService = findViewById(R.id.spinnerService);
-        LinearLayout btnPickDate = findViewById(R.id.btnPickDate);
-        LinearLayout btnPickTime = findViewById(R.id.btnPickTime);
+        Spinner spinnerVehicle = findViewById(R.id.spinnerVehicle);
+        TextView tvDate = findViewById(R.id.tvDate);
+        TextView tvTime = findViewById(R.id.tvTime);
         LinearLayout btnConfirmBooking = findViewById(R.id.btnConfirmBooking);
-        tvDate = findViewById(R.id.tvDate);
-        tvTime = findViewById(R.id.tvTime);
 
-        // --- FETCH AND DISPLAY USER DATA ---
-        android.content.SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
-        String savedName = prefs.getString("FULL_NAME", "Customer");
-        String savedRole = prefs.getString("ROLE", "motosync");
+        // --- FETCH LOGGED-IN CUSTOMER DETAILS ---
+        SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+        String customerName = prefs.getString("FULL_NAME", "Unknown Customer");
+        String customerEmail = prefs.getString("EMAIL", "Unknown Email");
+        String savedRole = prefs.getString("ROLE", "customer");
 
+        // Sync Sidebar Name
         TextView tvSidebarName = findViewById(R.id.tvSidebarName);
         TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
-
-        if (tvSidebarName != null) {
-            tvSidebarName.setText(savedName);
-        }
-
-        // Optional: Capitalize the first letter of the role (e.g., "customer" -> "Customer")
+        if (tvSidebarName != null) tvSidebarName.setText(customerName);
         if (tvSidebarRole != null && savedRole.length() > 0) {
             String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
             tvSidebarRole.setText(displayRole + " Account");
         }
-        // -----------------------------------
+        // ----------------------------------------
 
-        // Find Sidebar Menu Items
+        // Setup Dummy Data for Spinners
+        String[] services = {"Change Oil", "Tune Up", "Brake Pad Replacement", "General Checkup"};
+        ArrayAdapter<String> serviceAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, services);
+        spinnerService.setAdapter(serviceAdapter);
+
+        String[] vehicles = {"Yamaha R1 (ABC-123)", "Honda Click 125i (XYZ-987)", "Kawasaki NMAX (DEF-456)"};
+        ArrayAdapter<String> vehicleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, vehicles);
+        spinnerVehicle.setAdapter(vehicleAdapter);
+
+        // --- SUBMIT BOOKING TO FIREBASE ---
+        if (btnConfirmBooking != null) {
+            btnConfirmBooking.setOnClickListener(v -> {
+                String dateStr = tvDate.getText().toString().trim();
+                String timeStr = tvTime.getText().toString().trim();
+                String selectedService = spinnerService.getSelectedItem().toString();
+                String selectedVehicle = spinnerVehicle.getSelectedItem().toString();
+
+                // Combine date and time for Firebase
+                String fullDateAndTime = dateStr + " at " + timeStr;
+
+                if (dateStr.equals("dd/mm/yyyy") || dateStr.isEmpty()) {
+                    Toast.makeText(BookingActivity.this, "Please select a date.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Toast.makeText(BookingActivity.this, "Sending Request...", Toast.LENGTH_SHORT).show();
+
+                String appointmentId = mDatabase.push().getKey();
+
+                // Create the Appointment object (No notes field, matching your UI)
+                Appointment newAppointment = new Appointment(
+                        appointmentId,
+                        customerName,
+                        customerEmail,
+                        selectedService,
+                        selectedVehicle,
+                        fullDateAndTime,
+                        "Pending"
+                );
+
+                if (appointmentId != null) {
+                    mDatabase.child(appointmentId).setValue(newAppointment)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(BookingActivity.this, "Booking Confirmed!", Toast.LENGTH_LONG).show();
+                                startActivity(new Intent(BookingActivity.this, MyOrdersActivity.class));
+                                finish();
+                            })
+                            .addOnFailureListener(e -> Toast.makeText(BookingActivity.this, "Failed to book: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                }
+            });
+        }
+
+        // Open Menu
+        if (btnMenu != null) {
+            btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+        }
+
+        // --- SIDEBAR NAVIGATION ---
         LinearLayout navDashboard = findViewById(R.id.navDashboard);
         LinearLayout navBookService = findViewById(R.id.navBookService);
         LinearLayout navMyVehicles = findViewById(R.id.navMyVehicles);
-        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         LinearLayout navMyOrders = findViewById(R.id.navMyOrders);
         LinearLayout navMyInvoices = findViewById(R.id.navMyInvoices);
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
 
+        if (navDashboard != null) {
+            navDashboard.setOnClickListener(v -> {
+                startActivity(new Intent(this, MainActivity.class));
+                finish();
+            });
+        }
 
-        // 1. Setup Menu Drawer
-        btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
-
-        // --- MENU BUTTON CLICKS ---
-
-        // Go to Dashboard
-        navDashboard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Intent intent = new Intent(BookingActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish(); // Close this page
-            }
-        });
+        if (navBookService != null) {
+            navBookService.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+        }
 
         if (navMyVehicles != null) {
             navMyVehicles.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(this, VehiclesActivity.class));
+                finish();
             });
         }
 
         if (navMyOrders != null) {
             navMyOrders.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(this, MyOrdersActivity.class));
+                finish();
             });
         }
 
         if (navMyInvoices != null) {
             navMyInvoices.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(this, InvoicesActivity.class));
+                finish();
             });
         }
 
-        // Already on Booking, just close drawer
-        navBookService.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                drawerLayout.closeDrawer(GravityCompat.START);
-            }
-        });
-
         if (btnLogoutMenu != null) {
             btnLogoutMenu.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
                 Toast.makeText(BookingActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
-
                 Intent intent = new Intent(BookingActivity.this, LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();
             });
         }
-
-        // (We will connect My Vehicles later once the screen is built!)
-
-        // --------------------------
-
-        // 2. Populate Dropdowns (Spinners)
-        String[] vehicles = {"Choose a vehicle...", "Yamaha R1 (Plate: ABC-123)", "Honda Click 125i (Plate: XYZ-987)"};
-        ArrayAdapter<String> vehicleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, vehicles);
-        spinnerVehicle.setAdapter(vehicleAdapter);
-
-        String[] services = {"Choose a service...", "Change Oil", "Brake Pad Replacement", "Full Engine Overhaul", "Tire Alignment"};
-        ArrayAdapter<String> serviceAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, services);
-        spinnerService.setAdapter(serviceAdapter);
-
-        // 3. Setup Date Picker
-        btnPickDate.setOnClickListener(v -> {
-            final Calendar c = Calendar.getInstance();
-            int year = c.get(Calendar.YEAR);
-            int month = c.get(Calendar.MONTH);
-            int day = c.get(Calendar.DAY_OF_MONTH);
-
-            DatePickerDialog datePickerDialog = new DatePickerDialog(BookingActivity.this,
-                    (view, year1, monthOfYear, dayOfMonth) -> {
-                        tvDate.setText(dayOfMonth + "/" + (monthOfYear + 1) + "/" + year1);
-                    }, year, month, day);
-            datePickerDialog.show();
-        });
-
-        // 4. Setup Time Picker
-        btnPickTime.setOnClickListener(v -> {
-            final Calendar c = Calendar.getInstance();
-            int hour = c.get(Calendar.HOUR_OF_DAY);
-            int minute = c.get(Calendar.MINUTE);
-
-            TimePickerDialog timePickerDialog = new TimePickerDialog(BookingActivity.this,
-                    (view, hourOfDay, minuteOfHour) -> {
-                        String time = String.format("%02d:%02d", hourOfDay, minuteOfHour);
-                        tvTime.setText(time);
-                    }, hour, minute, true);
-            timePickerDialog.show();
-        });
-
-        // 5. Submit Button
-        btnConfirmBooking.setOnClickListener(v -> {
-            Toast.makeText(BookingActivity.this, "Booking Request Sent!", Toast.LENGTH_LONG).show();
-            finish();
-        });
     }
 }

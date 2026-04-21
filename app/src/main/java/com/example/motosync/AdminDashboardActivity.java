@@ -73,7 +73,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         if (navManageBookings != null) {
             navManageBookings.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Opening Service Bookings...", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, AdminAppointmentsActivity.class));
             });
         }
 
