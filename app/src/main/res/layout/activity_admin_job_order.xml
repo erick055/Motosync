@@ -9,7 +9,8 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:background="@color/card_bg" android:gravity="center_vertical">
-            <ImageView android:id="@+id/btnMenu" android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_sort_by_size" android:tint="@color/text_primary"/>
+            <ImageView android:id="@+id/btnMenu" android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_sort_by_size"
+                app:tint="@color/text_primary" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Job Orders" android:textColor="@color/teal_accent" android:textSize="20sp" android:textStyle="bold" android:layout_marginStart="16dp"/>
         </LinearLayout>
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#444444"/>
@@ -25,11 +26,36 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2. ASSIGN MECHANIC" android:textColor="@color/text_secondary" android:textSize="12sp" android:textStyle="bold" android:layout_marginBottom="8dp"/>
                 <Spinner android:id="@+id/spinnerMechanic" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_edittext_dark" android:layout_marginBottom="16dp"/>
 
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3. INTERNAL JOB NOTES (Optional)" android:textColor="@color/text_secondary" android:textSize="12sp" android:textStyle="bold" android:layout_marginBottom="8dp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3. ESTIMATED COST (₱)" android:textColor="@color/text_secondary" android:textSize="12sp" android:textStyle="bold" android:layout_marginBottom="8dp"/>
+                <EditText android:id="@+id/etJobCost" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_edittext_dark" android:inputType="numberDecimal" android:textColor="@color/text_primary" android:paddingHorizontal="16dp" android:hint="e.g. 1500" android:textColorHint="@color/text_secondary" android:layout_marginBottom="16dp"/>
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4. INTERNAL JOB NOTES (Optional)" android:textColor="@color/text_secondary" android:textSize="12sp" android:textStyle="bold" android:layout_marginBottom="8dp"/>
                 <EditText android:id="@+id/etJobNotes" android:layout_width="match_parent" android:layout_height="100dp" android:background="@drawable/bg_edittext_dark" android:textColor="@color/text_primary" android:gravity="top" android:padding="12dp" android:layout_marginBottom="24dp"/>
 
                 <LinearLayout android:id="@+id/btnCreateJobOrder" android:layout_width="match_parent" android:layout_height="50dp" android:background="@drawable/bg_button_green" android:gravity="center" android:clickable="true">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Assign &amp; Create Job Order" android:textColor="@color/bg_dark" android:textStyle="bold" android:textSize="16sp"/>
+                </LinearLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#444444"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginBottom="24dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ACTIVE JOB ORDERS"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:layout_marginBottom="16dp"/>
+
+                <LinearLayout
+                    android:id="@+id/jobOrdersContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>

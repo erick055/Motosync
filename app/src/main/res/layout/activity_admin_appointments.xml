@@ -55,7 +55,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_outlined_card"
                     android:layout_marginBottom="16dp"
-                    android:theme="@style/Theme.AppCompat.Light"/>
+                    android:theme="@style/ThemeOverlay.AppCompat.Dark"/>
 
                 <TextView
                     android:id="@+id/tvSelectedDateLabel"

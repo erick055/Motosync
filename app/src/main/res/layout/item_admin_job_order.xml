@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_outlined_card"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_marginBottom="16dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/tvJobService"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change Oil"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvJobStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="In Progress"
+            android:background="@drawable/bg_badge_pending"
+            android:textColor="#FFFFFF"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:textStyle="bold"
+            android:textSize="12sp"/>
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tvJobCustomer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Customer: Name"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/tvJobCost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cost: ₱0.00"
+        android:textColor="@color/teal_accent"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/tvJobMechanic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mechanic: John"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/tvJobNotes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Notes: None"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        android:layout_marginBottom="16dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/btnUpdateStatus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_primary"
+            android:gravity="center"
+            android:padding="12dp"
+            android:clickable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status"
+                android:textColor="@color/bg_dark"
+                android:textStyle="bold"
+                android:textSize="12sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnEditCost"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_dark"
+            android:gravity="center"
+            android:padding="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:clickable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cost"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:textSize="12sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnDeleteJob"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_dark"
+            android:gravity="center"
+            android:padding="12dp"
+            android:clickable="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delete"
+                android:textColor="@color/danger_red"
+                android:textStyle="bold"
+                android:textSize="12sp"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
