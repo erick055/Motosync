@@ -81,6 +81,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         findViewById(R.id.navAdminDashboard).setOnClickListener(v -> { startActivity(new Intent(this, AdminDashboardActivity.class)); finish(); });
         findViewById(R.id.navManageBookings).setOnClickListener(v -> { startActivity(new Intent(this, AdminAppointmentsActivity.class)); finish(); });
         findViewById(R.id.navJobOrders).setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+        findViewById(R.id.navManageReports).setOnClickListener(v -> startActivity(new Intent(this, AdminInvoicesActivity.class)));
         findViewById(R.id.btnLogoutMenu).setOnClickListener(v -> {
             Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, LoginActivity.class);

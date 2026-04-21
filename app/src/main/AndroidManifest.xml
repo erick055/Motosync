@@ -51,6 +51,10 @@
         <activity
             android:name=".AdminJobOrderActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".AdminInvoicesActivity"
+            android:exported="false" />
         <activity
             android:name=".SplashActivity"
             android:exported="true">
