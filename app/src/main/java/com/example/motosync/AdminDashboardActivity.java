@@ -50,6 +50,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         LinearLayout navManageServices = findViewById(R.id.navManageServices);
         LinearLayout navManageReports = findViewById(R.id.navManageReports);
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+        LinearLayout navJobOrders = findViewById(R.id.navJobOrders);
 
         // Open Menu
         if (btnMenu != null) {
@@ -74,6 +75,12 @@ public class AdminDashboardActivity extends AppCompatActivity {
             navManageBookings.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
                 startActivity(new Intent(this, AdminAppointmentsActivity.class));
+            });
+        }
+        if (navJobOrders != null) {
+            navJobOrders.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, AdminJobOrderActivity.class));
             });
         }
 

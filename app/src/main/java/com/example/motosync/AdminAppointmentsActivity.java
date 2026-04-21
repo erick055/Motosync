@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.CalendarView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -19,166 +20,99 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
 public class AdminAppointmentsActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private DatabaseReference mDatabase;
     private LinearLayout appointmentsContainer;
+    private TextView tvSelectedDateLabel;
+    private List<Appointment> allAppointments = new ArrayList<>(); // Caches all data
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_appointments);
 
-        // UI & Firebase Setup
         drawerLayout = findViewById(R.id.drawerLayout);
         mDatabase = FirebaseDatabase.getInstance().getReference("Appointments");
         appointmentsContainer = findViewById(R.id.appointmentsContainer);
+        tvSelectedDateLabel = findViewById(R.id.tvSelectedDateLabel);
+        CalendarView calendarView = findViewById(R.id.calendarView);
         ImageView btnMenu = findViewById(R.id.btnMenu);
 
-        // --- FETCH AND DISPLAY ADMIN DATA IN SIDEBAR ---
-        android.content.SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
-        String savedName = prefs.getString("FULL_NAME", "Admin Name");
-        String savedRole = prefs.getString("ROLE", "admin");
+        if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        TextView tvSidebarName = findViewById(R.id.tvSidebarName);
-        TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
+        // Setup Sidebar Routing (Dashboard, Calendar, Job Orders)
+        findViewById(R.id.navAdminDashboard).setOnClickListener(v -> { startActivity(new Intent(this, AdminDashboardActivity.class)); finish(); });
+        findViewById(R.id.navJobOrders).setOnClickListener(v -> { startActivity(new Intent(this, AdminJobOrderActivity.class)); finish(); });
 
-        if (tvSidebarName != null) tvSidebarName.setText(savedName);
-        if (tvSidebarRole != null && savedRole.length() > 0) {
-            String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
-            tvSidebarRole.setText(displayRole + " Account");
-        }
-        // -----------------------------------
+        // Get Today's Date
+        Calendar c = Calendar.getInstance();
+        String todayString = c.get(Calendar.DAY_OF_MONTH) + "/" + (c.get(Calendar.MONTH) + 1) + "/" + c.get(Calendar.YEAR);
+        tvSelectedDateLabel.setText("Appointments for: " + todayString);
 
-        // Open Menu
-        if (btnMenu != null) {
-            btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
-        }
+        // Fetch Data Once
+        fetchAppointments(todayString);
 
-        // --- ADMIN SIDEBAR NAVIGATION ---
-        LinearLayout navAdminDashboard = findViewById(R.id.navAdminDashboard);
-        LinearLayout navManageBookings = findViewById(R.id.navManageBookings);
-        LinearLayout navManageCustomers = findViewById(R.id.navManageCustomers);
-        LinearLayout navManageServices = findViewById(R.id.navManageServices);
-        LinearLayout navManageReports = findViewById(R.id.navManageReports);
-        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
-
-        if (navAdminDashboard != null) {
-            navAdminDashboard.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                startActivity(new Intent(this, AdminDashboardActivity.class));
-                finish();
-            });
-        }
-
-        // Already on this page, just close drawer
-        if (navManageBookings != null) {
-            navManageBookings.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
-        }
-
-        if (navManageCustomers != null) {
-            navManageCustomers.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Opening Customer Directory...", Toast.LENGTH_SHORT).show();
-            });
-        }
-
-        if (navManageServices != null) {
-            navManageServices.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Opening Services & Pricing...", Toast.LENGTH_SHORT).show();
-            });
-        }
-
-        if (navManageReports != null) {
-            navManageReports.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Opening Financial Reports...", Toast.LENGTH_SHORT).show();
-            });
-        }
-
-        // Handle Logout
-        if (btnLogoutMenu != null) {
-            btnLogoutMenu.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-            });
-        }
-
-        // Fetch Data from Firebase
-        fetchAppointments();
+        // Filter when user taps a new date
+        calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+            String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
+            tvSelectedDateLabel.setText("Appointments for: " + selectedDate);
+            displayAppointmentsForDate(selectedDate);
+        });
     }
 
-    // --- FIREBASE LOGIC ---
-    private void fetchAppointments() {
+    private void fetchAppointments(String initialDate) {
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                appointmentsContainer.removeAllViews(); // Clear the screen to prevent duplicates
-
-                if (!snapshot.exists()) {
-                    TextView noData = new TextView(AdminAppointmentsActivity.this);
-                    noData.setText("No appointment bookings found.");
-                    noData.setTextColor(getResources().getColor(R.color.text_secondary));
-                    noData.setTextSize(16f);
-                    appointmentsContainer.addView(noData);
-                    return;
-                }
-
+                allAppointments.clear();
                 for (DataSnapshot apptSnapshot : snapshot.getChildren()) {
                     Appointment appt = apptSnapshot.getValue(Appointment.class);
-                    if (appt != null) {
-                        addAppointmentCardToScreen(appt);
-                    }
+                    if (appt != null) allAppointments.add(appt);
                 }
+                displayAppointmentsForDate(initialDate);
             }
-
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(AdminAppointmentsActivity.this, "Failed to load data.", Toast.LENGTH_SHORT).show();
-            }
+            public void onCancelled(@NonNull DatabaseError error) { }
         });
+    }
+
+    private void displayAppointmentsForDate(String dateToMatch) {
+        appointmentsContainer.removeAllViews();
+        boolean found = false;
+
+        for (Appointment appt : allAppointments) {
+            // Check if the appointment's date string starts with our selected date (ignoring the "at 00:00" part)
+            if (appt.date.startsWith(dateToMatch)) {
+                addAppointmentCardToScreen(appt);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            TextView noData = new TextView(this);
+            noData.setText("No appointments scheduled for this date.");
+            noData.setTextColor(getResources().getColor(R.color.text_secondary));
+            appointmentsContainer.addView(noData);
+        }
     }
 
     private void addAppointmentCardToScreen(Appointment appt) {
         View cardView = LayoutInflater.from(this).inflate(R.layout.item_admin_appointment, appointmentsContainer, false);
 
-        TextView tvApptService = cardView.findViewById(R.id.tvApptService);
-        TextView tvApptCustomer = cardView.findViewById(R.id.tvApptCustomer);
-        TextView tvApptVehicle = cardView.findViewById(R.id.tvApptVehicle);
-        TextView tvApptDate = cardView.findViewById(R.id.tvApptDate);
-        TextView tvApptStatus = cardView.findViewById(R.id.tvApptStatus);
-        TextView btnApprove = cardView.findViewById(R.id.btnApprove);
-        TextView btnDecline = cardView.findViewById(R.id.btnDecline);
-        LinearLayout layoutActionButtons = cardView.findViewById(R.id.layoutActionButtons);
+        ((TextView) cardView.findViewById(R.id.tvApptService)).setText(appt.serviceType);
+        ((TextView) cardView.findViewById(R.id.tvApptCustomer)).setText("Customer: " + appt.customerName);
+        ((TextView) cardView.findViewById(R.id.tvApptVehicle)).setText("Vehicle: " + appt.vehicleDetails);
+        ((TextView) cardView.findViewById(R.id.tvApptDate)).setText("Time: " + appt.date);
+        ((TextView) cardView.findViewById(R.id.tvApptStatus)).setText(appt.status);
 
-        tvApptService.setText(appt.serviceType);
-        tvApptCustomer.setText("Customer: " + appt.customerName);
-        tvApptVehicle.setText("Vehicle: " + appt.vehicleDetails);
-        tvApptDate.setText("Date: " + appt.date);
-        tvApptStatus.setText(appt.status);
-
-        // Hide buttons if not Pending
-        if (!"Pending".equals(appt.status)) {
-            layoutActionButtons.setVisibility(View.GONE);
-        }
-
-        // Handle Approve
-        btnApprove.setOnClickListener(v -> {
-            mDatabase.child(appt.appointmentId).child("status").setValue("Approved");
-            Toast.makeText(this, "Appointment Approved!", Toast.LENGTH_SHORT).show();
-        });
-
-        // Handle Decline
-        btnDecline.setOnClickListener(v -> {
-            mDatabase.child(appt.appointmentId).child("status").setValue("Declined");
-            Toast.makeText(this, "Appointment Declined", Toast.LENGTH_SHORT).show();
-        });
+        // Make it VIEW ONLY by completely hiding the action buttons!
+        cardView.findViewById(R.id.layoutActionButtons).setVisibility(View.GONE);
 
         appointmentsContainer.addView(cardView);
     }
