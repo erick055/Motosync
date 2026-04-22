@@ -26,8 +26,11 @@ public class AdminInvoicesActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private DatabaseReference mInvoicesRef;
-    private DatabaseReference mJobOrdersRef; // To sync the price backward
+    private DatabaseReference mJobOrdersRef;
     private LinearLayout adminInvoicesContainer;
+
+    private DataSnapshot lastJobSnapshot;
+    private DataSnapshot lastInvoiceSnapshot;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +43,6 @@ public class AdminInvoicesActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
 
-        // Sidebar Name Sync
         SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
         String savedName = prefs.getString("FULL_NAME", "Admin Name");
 
@@ -49,7 +51,6 @@ public class AdminInvoicesActivity extends AppCompatActivity {
 
         if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        // Sidebar Routing
         findViewById(R.id.navAdminDashboard).setOnClickListener(v -> { startActivity(new Intent(this, AdminDashboardActivity.class)); finish(); });
         findViewById(R.id.navManageBookings).setOnClickListener(v -> { startActivity(new Intent(this, AdminAppointmentsActivity.class)); finish(); });
         findViewById(R.id.navJobOrders).setOnClickListener(v -> { startActivity(new Intent(this, AdminJobOrderActivity.class)); finish(); });
@@ -62,42 +63,75 @@ public class AdminInvoicesActivity extends AppCompatActivity {
             finish();
         });
 
-        // Fetch All System Invoices
         fetchAllInvoices();
     }
 
     private void fetchAllInvoices() {
-        mInvoicesRef.addValueEventListener(new ValueEventListener() {
+        mJobOrdersRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                adminInvoicesContainer.removeAllViews();
-
-                if (!snapshot.exists()) {
-                    TextView noData = new TextView(AdminInvoicesActivity.this);
-                    noData.setText("No financial records found.");
-                    noData.setTextColor(getResources().getColor(R.color.text_secondary));
-                    adminInvoicesContainer.addView(noData);
-                    return;
-                }
-
-                for (DataSnapshot ds : snapshot.getChildren()) {
-                    String invoiceId = ds.child("invoiceId").getValue(String.class);
-                    String jobOrderId = ds.child("jobOrderId").getValue(String.class); // Needed for syncing cost!
-                    String custName = ds.child("customerName").getValue(String.class);
-                    String service = ds.child("serviceType").getValue(String.class);
-                    String amount = ds.child("amount").getValue(String.class);
-                    String status = ds.child("status").getValue(String.class);
-
-                    if (status == null) status = "Unpaid";
-                    if (amount == null) amount = "0.00";
-
-                    addAdminInvoiceCard(invoiceId, jobOrderId, custName, service, amount, status);
-                }
+                lastJobSnapshot = snapshot;
+                refreshUI();
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
+
+        mInvoicesRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                lastInvoiceSnapshot = snapshot;
+                refreshUI();
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void refreshUI() {
+        if (lastJobSnapshot == null || lastInvoiceSnapshot == null) return;
+
+        adminInvoicesContainer.removeAllViews();
+        boolean found = false;
+
+        for (DataSnapshot invDs : lastInvoiceSnapshot.getChildren()) {
+            String invoiceId = invDs.child("invoiceId").getValue(String.class);
+            String jobId = invDs.child("jobOrderId").getValue(String.class);
+
+            // BULLETPROOF STATUS CHECK (Loops through to guarantee a match)
+            String jobStatus = "Unknown";
+            if (jobId != null) {
+                for (DataSnapshot jobDs : lastJobSnapshot.getChildren()) {
+                    String currentJobId = jobDs.child("jobOrderId").getValue(String.class);
+                    if (jobId.equals(currentJobId)) {
+                        jobStatus = jobDs.child("status").getValue(String.class);
+                        break;
+                    }
+                }
+            }
+
+            // ignores uppercase/lowercase and extra spaces!
+            if (jobStatus != null && jobStatus.trim().equalsIgnoreCase("Completed")) {
+                String custName = invDs.child("customerName").getValue(String.class);
+                String service = invDs.child("serviceType").getValue(String.class);
+                String amount = invDs.child("amount").getValue(String.class);
+                String status = invDs.child("status").getValue(String.class);
+
+                if (status == null) status = "Unpaid";
+                if (amount == null) amount = "0.00";
+
+                addAdminInvoiceCard(invoiceId, jobId, custName, service, amount, status);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            TextView noData = new TextView(this);
+            noData.setText("No invoices ready. (Jobs must be marked 'Completed' first)");
+            noData.setTextColor(getResources().getColor(R.color.text_secondary));
+            noData.setTextSize(16f);
+            adminInvoicesContainer.addView(noData);
+        }
     }
 
     private void addAdminInvoiceCard(String invoiceId, String jobOrderId, String custName, String service, String amount, String status) {
@@ -118,20 +152,19 @@ public class AdminInvoicesActivity extends AppCompatActivity {
         tvStatus.setText(status);
         if (status.equals("Paid")) {
             tvStatus.setBackgroundResource(R.drawable.bg_badge_completed);
-            btnMarkPaid.setVisibility(View.GONE); // Hide if already paid
+            btnMarkPaid.setVisibility(View.GONE);
         } else {
             tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled);
             btnMarkPaid.setVisibility(View.VISIBLE);
         }
 
-        // --- 1. EDIT COST LOGIC ---
         btnEditCost.setOnClickListener(v -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Update Final Cost (₱)");
 
             final EditText input = new EditText(this);
             input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
-            input.setText(amount); // Pre-fill with current amount
+            input.setText(amount);
             int padding = (int) (20 * getResources().getDisplayMetrics().density);
             input.setPadding(padding, padding, padding, padding);
             builder.setView(input);
@@ -139,14 +172,10 @@ public class AdminInvoicesActivity extends AppCompatActivity {
             builder.setPositiveButton("Save", (dialog, which) -> {
                 String newCost = input.getText().toString().trim();
                 if (!newCost.isEmpty()) {
-                    // Update Invoice
                     mInvoicesRef.child(invoiceId).child("amount").setValue(newCost);
-
-                    // Sync backward to update the Job Order too!
                     if (jobOrderId != null) {
                         mJobOrdersRef.child(jobOrderId).child("cost").setValue(newCost);
                     }
-
                     Toast.makeText(this, "Cost updated! Customer will see this instantly.", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -154,13 +183,11 @@ public class AdminInvoicesActivity extends AppCompatActivity {
             builder.show();
         });
 
-        // --- 2. MARK AS PAID LOGIC ---
         btnMarkPaid.setOnClickListener(v -> {
             mInvoicesRef.child(invoiceId).child("status").setValue("Paid");
             Toast.makeText(this, "Marked as Paid!", Toast.LENGTH_SHORT).show();
         });
 
-        // --- 3. DELETE LOGIC ---
         btnDelete.setOnClickListener(v -> {
             mInvoicesRef.child(invoiceId).removeValue();
             Toast.makeText(this, "Invoice Deleted", Toast.LENGTH_SHORT).show();

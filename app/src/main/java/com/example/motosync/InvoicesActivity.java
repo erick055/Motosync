@@ -24,8 +24,12 @@ public class InvoicesActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private DatabaseReference mInvoicesRef;
+    private DatabaseReference mJobOrdersRef;
     private LinearLayout invoicesContainer;
     private String customerEmail;
+
+    private DataSnapshot lastJobSnapshot;
+    private DataSnapshot lastInvoiceSnapshot;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,17 +37,17 @@ public class InvoicesActivity extends AppCompatActivity {
         setContentView(R.layout.activity_invoices);
 
         mInvoicesRef = FirebaseDatabase.getInstance().getReference("Invoices");
+        mJobOrdersRef = FirebaseDatabase.getInstance().getReference("JobOrders");
+
         invoicesContainer = findViewById(R.id.invoicesContainer);
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
 
-        // --- FETCH LOGGED-IN CUSTOMER DETAILS ---
         SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
         String customerName = prefs.getString("FULL_NAME", "Unknown Customer");
-        customerEmail = prefs.getString("EMAIL", "Unknown Email"); // Used for filtering!
+        customerEmail = prefs.getString("EMAIL", "Unknown Email");
         String savedRole = prefs.getString("ROLE", "customer");
 
-        // Sync Sidebar Name
         TextView tvSidebarName = findViewById(R.id.tvSidebarName);
         TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
         if (tvSidebarName != null) tvSidebarName.setText(customerName);
@@ -52,10 +56,8 @@ public class InvoicesActivity extends AppCompatActivity {
             tvSidebarRole.setText(displayRole + " Account");
         }
 
-        // Open Menu
         if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        // --- SIDEBAR NAVIGATION ---
         findViewById(R.id.navDashboard).setOnClickListener(v -> { startActivity(new Intent(this, MainActivity.class)); finish(); });
         findViewById(R.id.navBookService).setOnClickListener(v -> { startActivity(new Intent(this, BookingActivity.class)); finish(); });
         findViewById(R.id.navMyVehicles).setOnClickListener(v -> { startActivity(new Intent(this, VehiclesActivity.class)); finish(); });
@@ -70,28 +72,61 @@ public class InvoicesActivity extends AppCompatActivity {
             finish();
         });
 
-        // Fetch Invoices specific to this user
         fetchMyInvoices();
     }
 
     private void fetchMyInvoices() {
-        // Query Firebase to only pull invoices matching the logged-in email
-        mInvoicesRef.orderByChild("customerEmail").equalTo(customerEmail).addValueEventListener(new ValueEventListener() {
+        mJobOrdersRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                invoicesContainer.removeAllViews();
+                lastJobSnapshot = snapshot;
+                refreshUI();
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
 
-                if (!snapshot.exists()) {
-                    TextView noData = new TextView(InvoicesActivity.this);
-                    noData.setText("You have no invoices yet.");
-                    noData.setTextColor(getResources().getColor(R.color.text_secondary));
-                    noData.setTextSize(16f);
-                    invoicesContainer.addView(noData);
-                    return;
+        // Fetch ALL invoices, we will filter safely in Java to prevent case-sensitive crashes
+        mInvoicesRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                lastInvoiceSnapshot = snapshot;
+                refreshUI();
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void refreshUI() {
+        if (lastJobSnapshot == null || lastInvoiceSnapshot == null) return;
+
+        invoicesContainer.removeAllViews();
+        boolean found = false;
+
+        for (DataSnapshot ds : lastInvoiceSnapshot.getChildren()) {
+            String invEmail = ds.child("customerEmail").getValue(String.class);
+
+            // BULLETPROOF EMAIL MATCHING
+            if (invEmail != null && customerEmail != null && invEmail.trim().equalsIgnoreCase(customerEmail.trim())) {
+
+                String invoiceId = ds.child("invoiceId").getValue(String.class);
+                String jobId = ds.child("jobOrderId").getValue(String.class);
+
+                // BULLETPROOF JOB MATCHING
+                String jobStatus = "Unknown";
+                if (jobId != null) {
+                    for (DataSnapshot jobDs : lastJobSnapshot.getChildren()) {
+                        String currentJobId = jobDs.child("jobOrderId").getValue(String.class);
+                        if (jobId.equals(currentJobId)) {
+                            jobStatus = jobDs.child("status").getValue(String.class);
+                            break;
+                        }
+                    }
                 }
 
-                for (DataSnapshot ds : snapshot.getChildren()) {
-                    String invoiceId = ds.child("invoiceId").getValue(String.class);
+                // ONLY display if Completed!
+                if (jobStatus != null && jobStatus.trim().equalsIgnoreCase("Completed")) {
                     String service = ds.child("serviceType").getValue(String.class);
                     String amount = ds.child("amount").getValue(String.class);
                     String status = ds.child("status").getValue(String.class);
@@ -100,45 +135,43 @@ public class InvoicesActivity extends AppCompatActivity {
                     if (amount == null) amount = "0.00";
 
                     addInvoiceCardToScreen(invoiceId, service, amount, status);
+                    found = true;
                 }
             }
+        }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(InvoicesActivity.this, "Failed to load invoices.", Toast.LENGTH_SHORT).show();
-            }
-        });
+        if (!found) {
+            TextView noData = new TextView(this);
+            noData.setText("You have no completed invoices yet.");
+            noData.setTextColor(getResources().getColor(R.color.text_secondary));
+            noData.setTextSize(16f);
+            invoicesContainer.addView(noData);
+        }
     }
 
     private void addInvoiceCardToScreen(String invoiceId, String service, String amount, String status) {
-        // Ensure you have the 'item_invoice.xml' file we created earlier!
         View cardView = LayoutInflater.from(this).inflate(R.layout.item_invoice, invoicesContainer, false);
 
         ((TextView) cardView.findViewById(R.id.tvInvoiceService)).setText(service);
         ((TextView) cardView.findViewById(R.id.tvInvoiceAmount)).setText("₱ " + amount);
 
-        // Format a short ID for display
         String shortId = invoiceId != null && invoiceId.length() > 6 ? invoiceId.substring(invoiceId.length() - 6).toUpperCase() : "12345";
         ((TextView) cardView.findViewById(R.id.tvInvoiceId)).setText("Invoice Ref: #" + shortId);
 
-        // Status Badge Logic
         TextView tvStatus = cardView.findViewById(R.id.tvInvoiceStatus);
         LinearLayout btnPayNow = cardView.findViewById(R.id.btnPayNow);
 
         tvStatus.setText(status);
         if (status.equals("Paid")) {
-            tvStatus.setBackgroundResource(R.drawable.bg_badge_completed); // Green
-            btnPayNow.setVisibility(View.GONE); // Hide button if already paid
+            tvStatus.setBackgroundResource(R.drawable.bg_badge_completed);
+            btnPayNow.setVisibility(View.GONE);
         } else {
-            tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled); // Red/Orange
+            tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled);
             btnPayNow.setVisibility(View.VISIBLE);
         }
 
-        // --- SIMULATE PAYMENT ---
         btnPayNow.setOnClickListener(v -> {
             Toast.makeText(this, "Processing Payment...", Toast.LENGTH_SHORT).show();
-
-            // Update Firebase status to "Paid"
             mInvoicesRef.child(invoiceId).child("status").setValue("Paid").addOnSuccessListener(aVoid -> {
                 Toast.makeText(this, "Payment Successful!", Toast.LENGTH_LONG).show();
             });
