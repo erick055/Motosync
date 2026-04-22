@@ -55,16 +55,40 @@
         </LinearLayout>
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/btnRowRestock"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_button_dark"
-        android:text="Restock"
-        android:textColor="@color/teal_accent"
-        android:textStyle="bold"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="8dp"
-        android:clickable="true"
-        android:focusable="true"/>
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/btnRowRestock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_button_dark"
+            android:text="Restock"
+            android:textColor="@color/teal_accent"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:layout_marginBottom="8dp"
+            android:clickable="true"
+            android:focusable="true"/>
+
+        <TextView
+            android:id="@+id/btnRowDelete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_button_dark"
+            android:text="Delete"
+            android:textColor="@color/danger_red"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:clickable="true"
+            android:focusable="true"/>
+    </LinearLayout>
+
 </LinearLayout>
