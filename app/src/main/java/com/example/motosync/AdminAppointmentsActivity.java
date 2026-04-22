@@ -114,6 +114,24 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
         // Make it VIEW ONLY by completely hiding the action buttons!
         cardView.findViewById(R.id.layoutActionButtons).setVisibility(View.GONE);
 
+        TextView btnDelete = cardView.findViewById(R.id.btnDelete);
+        btnDelete.setOnClickListener(v -> {
+            // Build a confirmation dialog before deleting
+            new android.app.AlertDialog.Builder(AdminAppointmentsActivity.this)
+                    .setTitle("Delete Appointment")
+                    .setMessage("Are you sure you want to permanently delete this appointment?")
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        // Remove from Firebase using the unique appointmentId
+                        if (appt.appointmentId != null) {
+                            mDatabase.child(appt.appointmentId).removeValue()
+                                    .addOnSuccessListener(aVoid -> Toast.makeText(AdminAppointmentsActivity.this, "Appointment Deleted", Toast.LENGTH_SHORT).show())
+                                    .addOnFailureListener(e -> Toast.makeText(AdminAppointmentsActivity.this, "Failed to delete: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                        }
+                    })
+                    .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                    .show();
+        });
+
         appointmentsContainer.addView(cardView);
     }
 }
