@@ -87,7 +87,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         if (navManageCustomers != null) {
             navManageCustomers.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Opening Customer Directory...", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, AdminCustomersActivity.class));
             });
         }
 

@@ -17,4 +17,6 @@
     <color name="badge_pending_bg">#452B08</color>
     <color name="badge_cancelled_text">#EF4444</color>
     <color name="badge_cancelled_bg">#451515</color>
+
+    <color name="bg_dark_secondary">#1E1E1E</color>
 </resources>
