@@ -87,8 +87,8 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
         boolean found = false;
 
         for (Appointment appt : allAppointments) {
-            // Check if the appointment's date string starts with our selected date (ignoring the "at 00:00" part)
-            if (appt.date.startsWith(dateToMatch)) {
+            // FIX: Added null checks (appt.date != null) to prevent crashes
+            if (appt != null && appt.date != null && appt.date.startsWith(dateToMatch)) {
                 addAppointmentCardToScreen(appt);
                 found = true;
             }
@@ -97,7 +97,8 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
         if (!found) {
             TextView noData = new TextView(this);
             noData.setText("No appointments scheduled for this date.");
-            noData.setTextColor(getResources().getColor(R.color.text_secondary));
+            // FIX: Updated color resource calling method to the modern standard
+            noData.setTextColor(getResources().getColor(R.color.text_secondary, getTheme()));
             appointmentsContainer.addView(noData);
         }
     }
@@ -105,11 +106,12 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
     private void addAppointmentCardToScreen(Appointment appt) {
         View cardView = LayoutInflater.from(this).inflate(R.layout.item_admin_appointment, appointmentsContainer, false);
 
-        ((TextView) cardView.findViewById(R.id.tvApptService)).setText(appt.serviceType);
-        ((TextView) cardView.findViewById(R.id.tvApptCustomer)).setText("Customer: " + appt.customerName);
-        ((TextView) cardView.findViewById(R.id.tvApptVehicle)).setText("Vehicle: " + appt.vehicleDetails);
-        ((TextView) cardView.findViewById(R.id.tvApptDate)).setText("Time: " + appt.date);
-        ((TextView) cardView.findViewById(R.id.tvApptStatus)).setText(appt.status);
+        // FIX: Added fallback text ("Unknown") just in case any other Firebase field is missing
+        ((TextView) cardView.findViewById(R.id.tvApptService)).setText(appt.serviceType != null ? appt.serviceType : "Unknown Service");
+        ((TextView) cardView.findViewById(R.id.tvApptCustomer)).setText("Customer: " + (appt.customerName != null ? appt.customerName : "Unknown"));
+        ((TextView) cardView.findViewById(R.id.tvApptVehicle)).setText("Vehicle: " + (appt.vehicleDetails != null ? appt.vehicleDetails : "Unknown"));
+        ((TextView) cardView.findViewById(R.id.tvApptDate)).setText("Time: " + (appt.date != null ? appt.date : "Unknown"));
+        ((TextView) cardView.findViewById(R.id.tvApptStatus)).setText(appt.status != null ? appt.status : "Pending");
 
         // Make it VIEW ONLY by completely hiding the action buttons!
         cardView.findViewById(R.id.layoutActionButtons).setVisibility(View.GONE);

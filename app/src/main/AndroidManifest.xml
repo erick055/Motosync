@@ -59,6 +59,9 @@
             android:name=".AdminCustomersActivity"
             android:exported="false" />
         <activity
+            android:name=".AdminInventoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".SplashActivity"
             android:exported="true">
 

@@ -94,7 +94,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         if (navManageServices != null) {
             navManageServices.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Opening Services & Pricing...", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, AdminInventoryActivity.class));
             });
         }
 

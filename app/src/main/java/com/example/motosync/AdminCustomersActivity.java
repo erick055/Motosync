@@ -1,6 +1,7 @@
 package com.example.motosync;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,8 +39,61 @@ public class AdminCustomersActivity extends AppCompatActivity {
         // Target the Users node in Firebase
         mDatabase = FirebaseDatabase.getInstance().getReference("Users");
 
+        // --- SIDEBAR NAVIGATION LOGIC ---
+        LinearLayout navAdminDashboard = findViewById(R.id.navAdminDashboard);
+        LinearLayout navManageBookings = findViewById(R.id.navManageBookings);
+        LinearLayout navManageCustomers = findViewById(R.id.navManageCustomers);
+        LinearLayout navManageServices = findViewById(R.id.navManageServices);
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+        LinearLayout navJobOrders = findViewById(R.id.navJobOrders);
+
+        // Open Menu
         if (btnMenu != null) {
             btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+        }
+        // --- ADMIN SIDEBAR CLICKS ---
+        if (navAdminDashboard != null) {
+            navAdminDashboard.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+        }
+
+        if (navManageBookings != null) {
+            navManageBookings.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, AdminAppointmentsActivity.class));
+            });
+        }
+        if (navJobOrders != null) {
+            navJobOrders.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, AdminJobOrderActivity.class));
+            });
+        }
+
+        if (navManageCustomers != null) {
+            navManageCustomers.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, AdminCustomersActivity.class));
+            });
+        }
+
+        if (navManageServices != null) {
+            navManageServices.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(this, "Opening Services & Pricing...", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+
+        // Handle Logout
+        if (btnLogoutMenu != null) {
+            btnLogoutMenu.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            });
         }
 
         fetchCustomers();
