@@ -2,6 +2,7 @@ package com.example.motosync;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -46,10 +47,19 @@ public class AdminInventoryActivity extends AppCompatActivity {
 
         mDatabase = FirebaseDatabase.getInstance().getReference("Inventory");
 
+        // --- THE MENU CRASH FIX ---
         ImageView btnMenu = findViewById(R.id.btnMenu);
-        if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+        if (btnMenu != null) {
+            btnMenu.setOnClickListener(v -> {
+                // Now it checks if the drawer exists BEFORE trying to open it!
+                if (drawerLayout != null) {
+                    drawerLayout.openDrawer(GravityCompat.START);
+                } else {
+                    Toast.makeText(this, "Error: Drawer layout missing in XML", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
-        // --- NEW POPUP LOGIC FOR ADD BUTTON ---
         ImageView btnAddItem = findViewById(R.id.btnAddItem);
         if (btnAddItem != null) {
             btnAddItem.setOnClickListener(v -> showAddInventoryDialog());
@@ -59,19 +69,16 @@ public class AdminInventoryActivity extends AppCompatActivity {
         fetchInventory();
     }
 
-    // --- POPUP WINDOW METHOD ---
     private void showAddInventoryDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_inventory, null);
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
 
-        // Makes the background transparent so the rounded corners of your XML card show up correctly
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
 
-        // Map the popup inputs
         EditText etName = dialogView.findViewById(R.id.etInvName);
         EditText etCategory = dialogView.findViewById(R.id.etInvCategory);
         EditText etPrice = dialogView.findViewById(R.id.etInvPrice);
@@ -79,41 +86,35 @@ public class AdminInventoryActivity extends AppCompatActivity {
         TextView btnCancel = dialogView.findViewById(R.id.btnCancelInv);
         TextView btnSave = dialogView.findViewById(R.id.btnSaveInv);
 
-        // Cancel Button closes the popup
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
-        // Save Button processes the inputs
         btnSave.setOnClickListener(v -> {
             String name = etName.getText().toString().trim();
             String category = etCategory.getText().toString().trim();
             String priceStr = etPrice.getText().toString().trim();
             String stockStr = etStock.getText().toString().trim();
 
-            // Safety Check: Ensure no fields are blank
             if (name.isEmpty() || category.isEmpty() || priceStr.isEmpty() || stockStr.isEmpty()) {
                 Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             try {
-                // Convert text inputs into proper math numbers
                 double price = Double.parseDouble(priceStr);
                 int stock = Integer.parseInt(stockStr);
 
                 String newId = mDatabase.push().getKey();
                 if (newId != null) {
                     InventoryItem newItem = new InventoryItem(newId, name, category, price, stock);
-
-                    // Push to Firebase Realtime Database
                     mDatabase.child(newId).setValue(newItem)
                             .addOnSuccessListener(aVoid -> {
                                 Toast.makeText(this, "Product Added Successfully!", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss(); // Close popup on success
+                                dialog.dismiss();
                             })
                             .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
                 }
             } catch (NumberFormatException e) {
-                Toast.makeText(this, "Invalid number format for Price or Stock", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Invalid number format", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -163,8 +164,6 @@ public class AdminInventoryActivity extends AppCompatActivity {
         TextView tvPrice = rowView.findViewById(R.id.tvRowPrice);
         TextView tvStock = rowView.findViewById(R.id.tvRowStock);
         TextView btnRestock = rowView.findViewById(R.id.btnRowRestock);
-
-        // NEW: Map the Delete button
         TextView btnDelete = rowView.findViewById(R.id.btnRowDelete);
 
         if (tvName != null) tvName.setText(item.itemName != null ? item.itemName : "Unknown");
@@ -191,7 +190,6 @@ public class AdminInventoryActivity extends AppCompatActivity {
             });
         }
 
-        // NEW: Delete Button Logic with Confirmation Dialog
         if (btnDelete != null) {
             btnDelete.setOnClickListener(v -> {
                 new AlertDialog.Builder(this)
@@ -212,12 +210,27 @@ public class AdminInventoryActivity extends AppCompatActivity {
     }
 
     private void setupSidebarSafe() {
+        // --- FETCH ADMIN NAME FOR SIDEBAR ---
+        SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+        String savedName = prefs.getString("FULL_NAME", "Admin Name");
+        String savedRole = prefs.getString("ROLE", "admin");
+
+        TextView tvSidebarName = findViewById(R.id.tvSidebarName);
+        TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
+
+        if (tvSidebarName != null) tvSidebarName.setText(savedName);
+        if (tvSidebarRole != null && savedRole.length() > 0) {
+            tvSidebarRole.setText(savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1) + " Account");
+        }
+
+        // --- NAVIGATION LOGIC ---
         View navDashboard = findViewById(R.id.navAdminDashboard);
         if (navDashboard != null) navDashboard.setOnClickListener(v -> { startActivity(new Intent(this, AdminDashboardActivity.class)); finish(); });
 
         View navBookings = findViewById(R.id.navManageBookings);
         if (navBookings != null) navBookings.setOnClickListener(v -> { startActivity(new Intent(this, AdminAppointmentsActivity.class)); finish(); });
 
+        // THE TYPO IS FIXED HERE!
         View navJobOrders = findViewById(R.id.navJobOrders);
         if (navJobOrders != null) navJobOrders.setOnClickListener(v -> { startActivity(new Intent(this, AdminJobOrderActivity.class)); finish(); });
 

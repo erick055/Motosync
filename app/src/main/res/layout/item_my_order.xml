@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_outlined_card"
@@ -12,43 +13,53 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp">
         <TextView
-            android:id="@+id/tvInvService"
+            android:id="@+id/tvOrderVehicle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Service Type"
+            android:text="Vehicle Name"
             android:textColor="@color/text_primary"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
         <TextView
-            android:id="@+id/tvInvStatus"
+            android:id="@+id/tvOrderStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:background="@drawable/bg_badge_pending"
-            android:paddingHorizontal="10dp"
+            android:paddingHorizontal="8dp"
             android:paddingVertical="4dp"
-            android:text="Unpaid"
+            android:text="Pending"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:textStyle="bold"/>
     </RelativeLayout>
 
     <TextView
-        android:id="@+id/tvInvRef"
+        android:id="@+id/tvOrderService"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Ref: #123456"
+        android:text="Service Type"
         android:textColor="@color/text_secondary"
-        android:textSize="12sp"
-        android:layout_marginBottom="12dp"/>
+        android:textSize="14sp"
+        android:layout_marginBottom="16dp"/>
 
-    <TextView
-        android:id="@+id/tvInvAmount"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Total: ₱ 0.00"
-        android:textColor="@color/teal_accent"
-        android:textSize="16sp"
-        android:textStyle="bold"/>
-
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@android:drawable/ic_menu_my_calendar"
+            app:tint="@color/text_secondary"
+            android:layout_marginEnd="8dp"/>
+        <TextView
+            android:id="@+id/tvOrderDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Oct 24, 2026"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"/>
+    </LinearLayout>
 </LinearLayout>
