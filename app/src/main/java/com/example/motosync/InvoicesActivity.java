@@ -1,6 +1,5 @@
 package com.example.motosync;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -10,7 +9,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -25,130 +23,176 @@ import com.google.firebase.database.ValueEventListener;
 public class InvoicesActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
-    private LinearLayout invoicesContainer;
     private DatabaseReference mInvoicesRef;
-    private String savedName;
+    private DatabaseReference mJobOrdersRef;
+    private LinearLayout invoicesContainer;
+    private String customerEmail;
+
+    private DataSnapshot lastJobSnapshot;
+    private DataSnapshot lastInvoiceSnapshot;
+
+    // --- NEW: Variables to hold our listeners so we can kill them later ---
+    private ValueEventListener jobOrdersListener;
+    private ValueEventListener invoicesListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_invoices);
 
-        drawerLayout = findViewById(R.id.drawerLayout);
-        invoicesContainer = findViewById(R.id.invoicesContainer);
         mInvoicesRef = FirebaseDatabase.getInstance().getReference("Invoices");
+        mJobOrdersRef = FirebaseDatabase.getInstance().getReference("JobOrders");
 
-        // Fetch User Identity
-        SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
-        savedName = prefs.getString("FULL_NAME", "Customer");
-
-        setupSidebar();
-        fetchMyInvoices();
-    }
-
-    private void fetchMyInvoices() {
-        mInvoicesRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (invoicesContainer == null) return;
-                invoicesContainer.removeAllViews();
-                boolean hasInvoices = false;
-
-                for (DataSnapshot ds : snapshot.getChildren()) {
-                    String custName = ds.child("customerName").getValue(String.class);
-
-                    // Filter only invoices belonging to the logged-in customer!
-                    if (custName != null && custName.equals(savedName)) {
-                        String invoiceId = ds.child("invoiceId").getValue(String.class);
-                        String service = ds.child("serviceType").getValue(String.class);
-                        String amount = ds.child("amount").getValue(String.class);
-                        String status = ds.child("status").getValue(String.class);
-
-                        if (status == null) status = "Unpaid";
-                        if (amount == null) amount = "0.00";
-
-                        addInvoiceCard(invoiceId, service, amount, status);
-                        hasInvoices = true;
-                    }
-                }
-
-                if (!hasInvoices) {
-                    TextView noData = new TextView(InvoicesActivity.this);
-                    noData.setText("You have no invoices at this time.");
-                    noData.setTextColor(getResources().getColor(R.color.text_secondary, getTheme()));
-                    invoicesContainer.addView(noData);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(InvoicesActivity.this, "Failed to load invoices.", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void addInvoiceCard(String invoiceId, String service, String amount, String status) {
-        View cardView = LayoutInflater.from(this).inflate(R.layout.item_invoice, invoicesContainer, false);
-
-        TextView tvService = cardView.findViewById(R.id.tvInvService);
-        TextView tvAmount = cardView.findViewById(R.id.tvInvAmount);
-        TextView tvRef = cardView.findViewById(R.id.tvInvRef);
-        TextView tvStatus = cardView.findViewById(R.id.tvInvStatus);
-
-        if (tvService != null) tvService.setText(service != null ? service : "Unknown Service");
-        if (tvAmount != null) tvAmount.setText("Total: ₱ " + amount);
-
-        // Generate a clean looking short reference ID
-        if (tvRef != null) {
-            String shortId = invoiceId != null && invoiceId.length() > 6 ? invoiceId.substring(invoiceId.length() - 6).toUpperCase() : "REF";
-            tvRef.setText("Ref: #" + shortId);
-        }
-
-        if (tvStatus != null) {
-            tvStatus.setText(status);
-
-            // Just update the colors, no buttons to hide/show anymore!
-            if (status.equals("Paid")) {
-                tvStatus.setBackgroundResource(R.drawable.bg_badge_completed); // Green Badge
-            } else {
-                tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled); // Red Badge
-            }
-        }
-
-        invoicesContainer.addView(cardView);
-    }
-
-    private void setupSidebar() {
+        invoicesContainer = findViewById(R.id.invoicesContainer);
+        drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
-        if (btnMenu != null) btnMenu.setOnClickListener(v -> {
-            if (drawerLayout != null) drawerLayout.openDrawer(GravityCompat.START);
-        });
+
+        SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+        String customerName = prefs.getString("FULL_NAME", "Unknown Customer");
+        customerEmail = prefs.getString("EMAIL", "Unknown Email");
+        String savedRole = prefs.getString("ROLE", "customer");
 
         TextView tvSidebarName = findViewById(R.id.tvSidebarName);
-        if (tvSidebarName != null) tvSidebarName.setText(savedName);
+        TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
+        if (tvSidebarName != null) tvSidebarName.setText(customerName);
+        if (tvSidebarRole != null && savedRole.length() > 0) {
+            String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
+            tvSidebarRole.setText(displayRole + " Account");
+        }
 
-        // Sidebar Links
-        View navDashboard = findViewById(R.id.navDashboard);
-        if (navDashboard != null) navDashboard.setOnClickListener(v -> { startActivity(new Intent(this, MainActivity.class)); finish(); });
+        if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        View navBookService = findViewById(R.id.navBookService);
-        if (navBookService != null) navBookService.setOnClickListener(v -> { startActivity(new Intent(this, BookingActivity.class)); finish(); });
-
-        View navMyVehicles = findViewById(R.id.navMyVehicles);
-        if (navMyVehicles != null) navMyVehicles.setOnClickListener(v -> { startActivity(new Intent(this, VehiclesActivity.class)); finish(); });
-
-        View navMyOrders = findViewById(R.id.navMyOrders);
-        if (navMyOrders != null) navMyOrders.setOnClickListener(v -> { startActivity(new Intent(this, MyOrdersActivity.class)); finish(); });
-
-        View navMyInvoices = findViewById(R.id.navMyInvoices);
-        if (navMyInvoices != null) navMyInvoices.setOnClickListener(v -> { if (drawerLayout != null) drawerLayout.closeDrawer(GravityCompat.START); });
-
-        View btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
-        if (btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
+        findViewById(R.id.navDashboard).setOnClickListener(v -> { startActivity(new Intent(this, MainActivity.class)); finish(); });
+        findViewById(R.id.navBookService).setOnClickListener(v -> { startActivity(new Intent(this, BookingActivity.class)); finish(); });
+        findViewById(R.id.navMyVehicles).setOnClickListener(v -> { startActivity(new Intent(this, VehiclesActivity.class)); finish(); });
+        findViewById(R.id.navMyOrders).setOnClickListener(v -> { startActivity(new Intent(this, MyOrdersActivity.class)); finish(); });
+        findViewById(R.id.navMyInvoices).setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+        findViewById(R.id.navProfile).setOnClickListener(v -> { startActivity(new Intent(this, ProfileActivity.class)); finish(); });
+        findViewById(R.id.btnLogoutMenu).setOnClickListener(v -> {
+            Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });
+
+        fetchMyInvoices();
+    }
+
+    private void fetchMyInvoices() {
+        // 1. Initialize and attach Job Orders Listener
+        jobOrdersListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                lastJobSnapshot = snapshot;
+                refreshUI();
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        mJobOrdersRef.addValueEventListener(jobOrdersListener);
+
+        // 2. Initialize and attach Invoices Listener
+        invoicesListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                lastInvoiceSnapshot = snapshot;
+                refreshUI();
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        mInvoicesRef.addValueEventListener(invoicesListener);
+    }
+
+    private void refreshUI() {
+        if (lastJobSnapshot == null || lastInvoiceSnapshot == null) return;
+
+        invoicesContainer.removeAllViews();
+        boolean found = false;
+
+        for (DataSnapshot ds : lastInvoiceSnapshot.getChildren()) {
+            String invEmail = ds.child("customerEmail").getValue(String.class);
+
+            if (invEmail != null && customerEmail != null && invEmail.trim().equalsIgnoreCase(customerEmail.trim())) {
+
+                String invoiceId = ds.child("invoiceId").getValue(String.class);
+                String jobId = ds.child("jobOrderId").getValue(String.class);
+
+                String jobStatus = "Unknown";
+                if (jobId != null) {
+                    for (DataSnapshot jobDs : lastJobSnapshot.getChildren()) {
+                        String currentJobId = jobDs.child("jobOrderId").getValue(String.class);
+                        if (jobId.equals(currentJobId)) {
+                            jobStatus = jobDs.child("status").getValue(String.class);
+                            break;
+                        }
+                    }
+                }
+
+                if (jobStatus != null && jobStatus.trim().equalsIgnoreCase("Completed")) {
+                    String service = ds.child("serviceType").getValue(String.class);
+                    String amount = ds.child("amount").getValue(String.class);
+                    String status = ds.child("status").getValue(String.class);
+
+                    if (status == null) status = "Unpaid";
+                    if (amount == null) amount = "0.00";
+
+                    addInvoiceCardToScreen(invoiceId, service, amount, status);
+                    found = true;
+                }
+            }
+        }
+
+        if (!found) {
+            TextView noData = new TextView(this);
+            noData.setText("You have no completed invoices yet.");
+            noData.setTextColor(getResources().getColor(R.color.text_secondary));
+            noData.setTextSize(16f);
+            invoicesContainer.addView(noData);
+        }
+    }
+
+    private void addInvoiceCardToScreen(String invoiceId, String service, String amount, String status) {
+        View cardView = LayoutInflater.from(this).inflate(R.layout.item_invoice, invoicesContainer, false);
+
+        ((TextView) cardView.findViewById(R.id.tvInvService)).setText(service);
+        ((TextView) cardView.findViewById(R.id.tvInvAmount)).setText("₱ " + amount);
+
+        String shortId = invoiceId != null && invoiceId.length() > 6 ? invoiceId.substring(invoiceId.length() - 6).toUpperCase() : "12345";
+        ((TextView) cardView.findViewById(R.id.tvInvRef)).setText("Invoice Ref: #" + shortId);
+
+        TextView tvStatus = cardView.findViewById(R.id.tvInvStatus);
+        LinearLayout btnPayNow = cardView.findViewById(R.id.btnPayNow);
+
+        tvStatus.setText(status);
+        if (status.equals("Paid")) {
+            tvStatus.setBackgroundResource(R.drawable.bg_badge_completed);
+            btnPayNow.setVisibility(View.GONE);
+        } else {
+            tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled);
+            btnPayNow.setVisibility(View.VISIBLE);
+        }
+
+        btnPayNow.setOnClickListener(v -> {
+            Toast.makeText(this, "Processing Payment...", Toast.LENGTH_SHORT).show();
+            mInvoicesRef.child(invoiceId).child("status").setValue("Paid").addOnSuccessListener(aVoid -> {
+                Toast.makeText(this, "Payment Successful!", Toast.LENGTH_LONG).show();
+            });
+        });
+
+        invoicesContainer.addView(cardView);
+    }
+
+    // --- NEW: DESTROY LISTENERS WHEN PAGE CLOSES TO PREVENT MEMORY LEAKS ---
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mJobOrdersRef != null && jobOrdersListener != null) {
+            mJobOrdersRef.removeEventListener(jobOrdersListener);
+        }
+        if (mInvoicesRef != null && invoicesListener != null) {
+            mInvoicesRef.removeEventListener(invoicesListener);
+        }
     }
 }

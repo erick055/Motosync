@@ -32,6 +32,10 @@ public class AdminInvoicesActivity extends AppCompatActivity {
     private DataSnapshot lastJobSnapshot;
     private DataSnapshot lastInvoiceSnapshot;
 
+    // --- MEMORY LEAK PREVENTION VARIABLES ---
+    private ValueEventListener jobOrdersListener;
+    private ValueEventListener invoicesListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,7 +71,7 @@ public class AdminInvoicesActivity extends AppCompatActivity {
     }
 
     private void fetchAllInvoices() {
-        mJobOrdersRef.addValueEventListener(new ValueEventListener() {
+        jobOrdersListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 lastJobSnapshot = snapshot;
@@ -75,9 +79,10 @@ public class AdminInvoicesActivity extends AppCompatActivity {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
-        });
+        };
+        mJobOrdersRef.addValueEventListener(jobOrdersListener);
 
-        mInvoicesRef.addValueEventListener(new ValueEventListener() {
+        invoicesListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 lastInvoiceSnapshot = snapshot;
@@ -85,7 +90,8 @@ public class AdminInvoicesActivity extends AppCompatActivity {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
-        });
+        };
+        mInvoicesRef.addValueEventListener(invoicesListener);
     }
 
     private void refreshUI() {
@@ -98,7 +104,6 @@ public class AdminInvoicesActivity extends AppCompatActivity {
             String invoiceId = invDs.child("invoiceId").getValue(String.class);
             String jobId = invDs.child("jobOrderId").getValue(String.class);
 
-            // BULLETPROOF STATUS CHECK (Loops through to guarantee a match)
             String jobStatus = "Unknown";
             if (jobId != null) {
                 for (DataSnapshot jobDs : lastJobSnapshot.getChildren()) {
@@ -110,7 +115,6 @@ public class AdminInvoicesActivity extends AppCompatActivity {
                 }
             }
 
-            // ignores uppercase/lowercase and extra spaces!
             if (jobStatus != null && jobStatus.trim().equalsIgnoreCase("Completed")) {
                 String custName = invDs.child("customerName").getValue(String.class);
                 String service = invDs.child("serviceType").getValue(String.class);
@@ -194,5 +198,17 @@ public class AdminInvoicesActivity extends AppCompatActivity {
         });
 
         adminInvoicesContainer.addView(cardView);
+    }
+
+    // --- THE KILL SWITCH ---
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mJobOrdersRef != null && jobOrdersListener != null) {
+            mJobOrdersRef.removeEventListener(jobOrdersListener);
+        }
+        if (mInvoicesRef != null && invoicesListener != null) {
+            mInvoicesRef.removeEventListener(invoicesListener);
+        }
     }
 }
