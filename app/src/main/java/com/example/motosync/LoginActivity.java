@@ -25,7 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 public class LoginActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase;
-    private FirebaseAuth mAuth; // 1. Declare FirebaseAuth
+    private FirebaseAuth mAuth;
     private String currentLoginType = "customer"; // Tracks the active tab
 
     @Override
@@ -33,7 +33,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // 2. Initialize Auth and Database
+        // Initialize Auth and Database
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference("Users");
 
@@ -79,7 +79,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 Toast.makeText(LoginActivity.this, "Authenticating...", Toast.LENGTH_SHORT).show();
 
-                // 3. Authenticate using FirebaseAuth instead of Realtime Database
+                // Authenticate using FirebaseAuth
                 mAuth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
@@ -88,9 +88,9 @@ public class LoginActivity extends AppCompatActivity {
                                     FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
                                     if (firebaseUser != null) {
-                                        // 4. Check if the user has verified their email
+                                        // Check if the user has verified their email
                                         if (firebaseUser.isEmailVerified()) {
-                                            // 5. Fetch their role and data from Realtime Database using their UID
+                                            // Fetch their role and data from Realtime Database using their UID
                                             fetchUserDataAndRoute(firebaseUser.getUid());
                                         } else {
                                             Toast.makeText(LoginActivity.this, "Please verify your email address first.", Toast.LENGTH_LONG).show();
@@ -118,10 +118,14 @@ public class LoginActivity extends AppCompatActivity {
                 if (dataSnapshot.exists()) {
                     User user = dataSnapshot.getValue(User.class);
 
-                    if (user != null) {
+                    if (user != null && user.role != null) {
+
+                        // Clean the role string (forces lowercase and removes accidental spaces)
+                        String cleanRole = user.role.trim().toLowerCase();
+
                         // SECURITY CHECK: Ensure they are using the right tab
-                        if (!user.role.equals(currentLoginType)) {
-                            Toast.makeText(LoginActivity.this, "Access Denied: Please use the " + user.role + " tab.", Toast.LENGTH_LONG).show();
+                        if (!cleanRole.equals(currentLoginType)) {
+                            Toast.makeText(LoginActivity.this, "Access Denied: Please use the " + cleanRole + " tab.", Toast.LENGTH_LONG).show();
                             mAuth.signOut(); // Kick them out if trying to bypass roles
                             return;
                         }
@@ -131,13 +135,13 @@ public class LoginActivity extends AppCompatActivity {
                         SharedPreferences.Editor editor = prefs.edit();
                         editor.putString("FULL_NAME", user.fullName);
                         editor.putString("EMAIL", user.email);
-                        editor.putString("ROLE", user.role);
+                        editor.putString("ROLE", cleanRole);
                         editor.apply();
 
                         Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
 
                         // Route to correct dashboard
-                        if ("admin".equals(user.role)) {
+                        if ("admin".equals(cleanRole)) {
                             startActivity(new Intent(LoginActivity.this, AdminDashboardActivity.class));
                         } else {
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));

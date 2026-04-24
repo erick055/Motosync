@@ -57,9 +57,13 @@ public class SplashActivity extends AppCompatActivity {
                 if (snapshot.exists()) {
                     User user = snapshot.getValue(User.class);
 
-                    if (user != null) {
+                    if (user != null && user.role != null) {
+
+                        // Clean the role string to avoid capitalization/space errors
+                        String cleanRole = user.role.trim().toLowerCase();
+
                         // Route to correct dashboard based on role
-                        if ("admin".equals(user.role)) {
+                        if ("admin".equals(cleanRole)) {
                             startActivity(new Intent(SplashActivity.this, AdminDashboardActivity.class));
                         } else {
                             startActivity(new Intent(SplashActivity.this, MainActivity.class));
