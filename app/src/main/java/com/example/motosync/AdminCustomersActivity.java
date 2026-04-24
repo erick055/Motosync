@@ -106,12 +106,11 @@ public class AdminCustomersActivity extends AppCompatActivity {
             });
         }
 
-        LinearLayout btnOpenHistoryBook = findViewById(R.id.btnOpenHistoryBook);
-        if (btnOpenHistoryBook != null) {
-            btnOpenHistoryBook.setOnClickListener(v -> {
-                startActivity(new Intent(this, AdminHistoryActivity.class));
-            });
-        }
+        LinearLayout navAdminHistory = findViewById(R.id.navAdminHistory);
+        if (navAdminHistory != null) navAdminHistory.setOnClickListener(v -> {
+            startActivity(new Intent(v.getContext(), AdminHistoryActivity.class));
+            finish();
+        });
 
         // Handle Logout
         if (btnLogoutMenu != null) {

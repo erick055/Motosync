@@ -90,12 +90,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
         LinearLayout navManageReports = findViewById(R.id.navManageReports);
         if(navManageReports != null) navManageReports.setOnClickListener(v -> { startActivity(new Intent(AdminDashboardActivity.this, AdminInvoicesActivity.class)); finish(); });
 
-        LinearLayout btnOpenHistoryBook = findViewById(R.id.btnOpenHistoryBook);
-        if (btnOpenHistoryBook != null) {
-            btnOpenHistoryBook.setOnClickListener(v -> {
-                startActivity(new Intent(AdminDashboardActivity.this, AdminHistoryActivity.class));
-            });
-        }
+        LinearLayout navAdminHistory = findViewById(R.id.navAdminHistory);
+        if (navAdminHistory != null) navAdminHistory.setOnClickListener(v -> {
+            startActivity(new Intent(v.getContext(), AdminHistoryActivity.class));
+            finish();
+        });
 
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {

@@ -104,12 +104,12 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         LinearLayout navManageCustomers = findViewById(R.id.navManageCustomers);
         if(navManageCustomers != null) navManageCustomers.setOnClickListener(v -> { startActivity(new Intent(AdminJobOrderActivity.this, AdminCustomersActivity.class)); finish(); });
 
-        LinearLayout btnOpenHistoryBook = findViewById(R.id.btnOpenHistoryBook);
-        if (btnOpenHistoryBook != null) {
-            btnOpenHistoryBook.setOnClickListener(v -> {
-                startActivity(new Intent(AdminJobOrderActivity.this, AdminHistoryActivity.class));
-            });
-        }
+        LinearLayout navAdminHistory = findViewById(R.id.navAdminHistory);
+        if (navAdminHistory != null) navAdminHistory.setOnClickListener(v -> {
+            startActivity(new Intent(v.getContext(), AdminHistoryActivity.class));
+            finish();
+        });
+
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
             Toast.makeText(AdminJobOrderActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();

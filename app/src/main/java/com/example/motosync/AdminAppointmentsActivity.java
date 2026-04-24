@@ -63,44 +63,41 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
         if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
         // =========================================================
-        // --- 100% SECURE SIDEBAR NAVIGATION (CRASH-PROOF) ---
+        // --- 100% SECURE SIDEBAR NAVIGATION ---
         // =========================================================
 
         LinearLayout navAdminDashboard = findViewById(R.id.navAdminDashboard);
-        if(navAdminDashboard != null) navAdminDashboard.setOnClickListener(v -> { startActivity(new Intent(AdminAppointmentsActivity.this, AdminDashboardActivity.class)); finish(); });
+        if(navAdminDashboard != null) navAdminDashboard.setOnClickListener(v -> { startActivity(new Intent(this, AdminDashboardActivity.class)); finish(); });
 
         LinearLayout navManageBookings = findViewById(R.id.navManageBookings);
         if(navManageBookings != null) navManageBookings.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START)); // Already here!
 
         LinearLayout navJobOrders = findViewById(R.id.navJobOrders);
-        if(navJobOrders != null) navJobOrders.setOnClickListener(v -> { startActivity(new Intent(AdminAppointmentsActivity.this, AdminJobOrderActivity.class)); finish(); });
-
-        LinearLayout navManageReports = findViewById(R.id.navManageReports);
-        if(navManageReports != null) navManageReports.setOnClickListener(v -> { startActivity(new Intent(AdminAppointmentsActivity.this, AdminInvoicesActivity.class)); finish(); });
+        if(navJobOrders != null) navJobOrders.setOnClickListener(v -> { startActivity(new Intent(this, AdminJobOrderActivity.class)); finish(); });
 
         LinearLayout navManageServices = findViewById(R.id.navManageServices);
-        if(navManageServices != null) navManageServices.setOnClickListener(v -> {startActivity(new Intent(AdminAppointmentsActivity.this, AdminInventoryActivity.class)); finish(); });
+        if(navManageServices != null) navManageServices.setOnClickListener(v -> { startActivity(new Intent(this, AdminInventoryActivity.class)); finish(); });
 
         LinearLayout navManageCustomers = findViewById(R.id.navManageCustomers);
-        if(navManageCustomers != null) navManageCustomers.setOnClickListener(v -> { startActivity(new Intent(AdminAppointmentsActivity.this, AdminCustomersActivity.class)); finish(); });
+        if(navManageCustomers != null) navManageCustomers.setOnClickListener(v -> { startActivity(new Intent(this, AdminCustomersActivity.class)); finish(); });
 
-        LinearLayout btnOpenHistoryBook = findViewById(R.id.btnOpenHistoryBook);
-        if (btnOpenHistoryBook != null) {
-            btnOpenHistoryBook.setOnClickListener(v -> {
-                startActivity(new Intent(AdminAppointmentsActivity.this, AdminHistoryActivity.class));
-            });
-        }
+        LinearLayout navManageReports = findViewById(R.id.navManageReports);
+        if(navManageReports != null) navManageReports.setOnClickListener(v -> { startActivity(new Intent(this, AdminInvoicesActivity.class)); finish(); });
+
+
+        LinearLayout navAdminHistory = findViewById(R.id.navAdminHistory);
+        if (navAdminHistory != null) navAdminHistory.setOnClickListener(v -> { startActivity(new Intent(this, AdminHistoryActivity.class)); finish(); });
 
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
-            Toast.makeText(AdminAppointmentsActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(AdminAppointmentsActivity.this, LoginActivity.class);
+            Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });
 
-
+        // Initialize today's date
         Calendar c = Calendar.getInstance();
         String todayString = c.get(Calendar.DAY_OF_MONTH) + "/" + (c.get(Calendar.MONTH) + 1) + "/" + c.get(Calendar.YEAR);
         tvSelectedDateLabel.setText("Appointments for: " + todayString);
@@ -145,7 +142,7 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
         }
 
         if (!found) {
-            TextView noData = new TextView(AdminAppointmentsActivity.this);
+            TextView noData = new TextView(this);
             noData.setText("No appointments scheduled for this date.");
             noData.setTextColor(getResources().getColor(R.color.text_secondary));
             appointmentsContainer.addView(noData);
@@ -167,7 +164,7 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
                 case "Pending": tvStatus.setBackgroundResource(R.drawable.bg_badge_pending); break;
                 case "Approved": tvStatus.setBackgroundResource(R.drawable.bg_badge_green); break;
                 case "Declined": tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled); break;
-                case "In Progress": tvStatus.setBackgroundResource(R.drawable.bg_badge_purple); break; // Fixed color error
+                case "In Progress": tvStatus.setBackgroundResource(R.drawable.bg_badge_primary); break;
                 case "Completed": tvStatus.setBackgroundResource(R.drawable.bg_badge_completed); break;
                 default: tvStatus.setBackgroundResource(R.drawable.bg_badge_purple); break;
             }
@@ -192,33 +189,16 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
                 if ("Completed".equals(appt.status) || "Declined".equals(appt.status) || "Cancelled".equals(appt.status)) {
                     btnDeleteAppt.setVisibility(View.VISIBLE);
 
+                    // --- THE FIX: ISOLATED DELETE LOGIC ---
                     btnDeleteAppt.setOnClickListener(v -> {
                         new AlertDialog.Builder(AdminAppointmentsActivity.this)
-                                .setTitle("Clear Record?")
-                                .setMessage("This will permanently delete this appointment, its Job Order, and the final Invoice. Continue?")
-                                .setPositiveButton("Delete All", (dialog, which) -> {
+                                .setTitle("Clear Appointment?")
+                                .setMessage("This will remove the appointment request from your calendar. Connected job orders and invoices will remain safe. Continue?")
+                                .setPositiveButton("Remove", (dialog, which) -> {
 
+                                    // Only delete the appointment itself!
                                     mDatabase.child(appt.appointmentId).removeValue();
-
-                                    DatabaseReference jobRef = FirebaseDatabase.getInstance().getReference("JobOrders");
-                                    DatabaseReference invRef = FirebaseDatabase.getInstance().getReference("Invoices");
-
-                                    jobRef.orderByChild("appointmentId").equalTo(appt.appointmentId).addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                            for (DataSnapshot ds : snapshot.getChildren()) {
-                                                String jobId = ds.child("jobOrderId").getValue(String.class);
-                                                String invId = ds.child("invoiceId").getValue(String.class);
-
-                                                if (jobId != null) jobRef.child(jobId).removeValue();
-                                                if (invId != null) invRef.child(invId).removeValue();
-                                            }
-                                        }
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError error) {}
-                                    });
-
-                                    Toast.makeText(AdminAppointmentsActivity.this, "All linked records deleted!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(AdminAppointmentsActivity.this, "Appointment removed from list!", Toast.LENGTH_SHORT).show();
                                 })
                                 .setNegativeButton("Cancel", null)
                                 .show();

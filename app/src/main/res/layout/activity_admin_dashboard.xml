@@ -168,23 +168,7 @@
                         android:textSize="24sp"
                         android:layout_marginTop="8dp"/>
                 </LinearLayout>
-                <LinearLayout
-                    android:id="@+id/btnOpenHistoryBook"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_button_primary"
-                    android:gravity="center"
-                    android:padding="16dp"
-                    android:layout_marginTop="16dp"
-                    android:clickable="true">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="OPEN HISTORY BOOK"
-                        android:textColor="#FFFFFF"
-                        android:textStyle="bold"
-                        android:textSize="14sp"/>
-                </LinearLayout>
+
             </LinearLayout>
         </ScrollView>
     </LinearLayout>
