@@ -55,20 +55,36 @@ public class InvoicesActivity extends AppCompatActivity {
         TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
         if (tvSidebarName != null) tvSidebarName.setText(customerName);
         if (tvSidebarRole != null && savedRole.length() > 0) {
-            tvSidebarRole.setText(savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1) + " Account");
+            String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
+            tvSidebarRole.setText(displayRole + " Account");
         }
 
         if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        // SAFELY ROUTE USING InvoicesActivity.this
-        findViewById(R.id.navDashboard).setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, MainActivity.class)); finish(); });
-        findViewById(R.id.navBookService).setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, BookingActivity.class)); finish(); });
-        findViewById(R.id.navMyVehicles).setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, VehiclesActivity.class)); finish(); });
-        findViewById(R.id.navMyOrders).setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, MyOrdersActivity.class)); finish(); });
-        findViewById(R.id.navMyInvoices).setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
-        findViewById(R.id.navProfile).setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, ProfileActivity.class)); finish(); });
+        // =========================================================
+        // --- 100% SECURE CUSTOMER SIDEBAR NAVIGATION ---
+        // =========================================================
 
-        findViewById(R.id.btnLogoutMenu).setOnClickListener(v -> {
+        LinearLayout navDashboard = findViewById(R.id.navDashboard);
+        if(navDashboard != null) navDashboard.setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, MainActivity.class)); finish(); });
+
+        LinearLayout navBookService = findViewById(R.id.navBookService);
+        if(navBookService != null) navBookService.setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, BookingActivity.class)); finish(); });
+
+        LinearLayout navMyVehicles = findViewById(R.id.navMyVehicles);
+        if(navMyVehicles != null) navMyVehicles.setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, VehiclesActivity.class)); finish(); });
+
+        LinearLayout navMyOrders = findViewById(R.id.navMyOrders);
+        if(navMyOrders != null) navMyOrders.setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, MyOrdersActivity.class)); finish(); });
+
+        LinearLayout navMyInvoices = findViewById(R.id.navMyInvoices);
+        if(navMyInvoices != null) navMyInvoices.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START)); // Already here!
+
+        LinearLayout navProfile = findViewById(R.id.navProfile);
+        if(navProfile != null) navProfile.setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, ProfileActivity.class)); finish(); });
+
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
             Toast.makeText(InvoicesActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(InvoicesActivity.this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -104,7 +120,7 @@ public class InvoicesActivity extends AppCompatActivity {
     }
 
     private void refreshUI() {
-        if (lastJobSnapshot == null || lastInvoiceSnapshot == null) return;
+        if (lastJobSnapshot == null || lastInvoiceSnapshot == null || invoicesContainer == null) return;
 
         invoicesContainer.removeAllViews();
         boolean found = false;
@@ -113,6 +129,7 @@ public class InvoicesActivity extends AppCompatActivity {
             String invEmail = ds.child("customerEmail").getValue(String.class);
 
             if (invEmail != null && customerEmail != null && invEmail.trim().equalsIgnoreCase(customerEmail.trim())) {
+
                 String invoiceId = ds.child("invoiceId").getValue(String.class);
                 String jobId = ds.child("jobOrderId").getValue(String.class);
 
@@ -142,7 +159,7 @@ public class InvoicesActivity extends AppCompatActivity {
         }
 
         if (!found) {
-            TextView noData = new TextView(InvoicesActivity.this);
+            TextView noData = new TextView(this);
             noData.setText("You have no completed invoices yet.");
             noData.setTextColor(getResources().getColor(R.color.text_secondary));
             noData.setTextSize(16f);
@@ -153,31 +170,39 @@ public class InvoicesActivity extends AppCompatActivity {
     private void addInvoiceCardToScreen(String invoiceId, String service, String amount, String status) {
         View cardView = LayoutInflater.from(this).inflate(R.layout.item_invoice, invoicesContainer, false);
 
-        ((TextView) cardView.findViewById(R.id.tvInvoiceService)).setText(service);
-        ((TextView) cardView.findViewById(R.id.tvInvoiceAmount)).setText("₱ " + amount);
+        // Correct IDs matching item_invoice.xml
+        TextView tvService = cardView.findViewById(R.id.tvInvoiceService);
+        if(tvService != null) tvService.setText(service);
 
+        TextView tvAmount = cardView.findViewById(R.id.tvInvoiceAmount);
+        if(tvAmount != null) tvAmount.setText("₱ " + amount);
+
+        TextView tvId = cardView.findViewById(R.id.tvInvoiceId);
         String shortId = invoiceId != null && invoiceId.length() > 6 ? invoiceId.substring(invoiceId.length() - 6).toUpperCase() : "12345";
-        ((TextView) cardView.findViewById(R.id.tvInvoiceId)).setText("Invoice Ref: #" + shortId);
+        if(tvId != null) tvId.setText("Invoice Ref: #" + shortId);
 
         TextView tvStatus = cardView.findViewById(R.id.tvInvoiceStatus);
         LinearLayout btnPayNow = cardView.findViewById(R.id.btnPayNow);
 
-        tvStatus.setText(status);
-        if ("Paid".equalsIgnoreCase(status)) {
-            tvStatus.setBackgroundResource(R.drawable.bg_badge_completed);
-            btnPayNow.setVisibility(View.GONE);
-        } else {
-            tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled);
-            btnPayNow.setVisibility(View.VISIBLE);
+        if (tvStatus != null) {
+            tvStatus.setText(status);
+            if ("Paid".equalsIgnoreCase(status)) {
+                tvStatus.setBackgroundResource(R.drawable.bg_badge_completed);
+                if(btnPayNow != null) btnPayNow.setVisibility(View.GONE);
+            } else {
+                tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled);
+                if(btnPayNow != null) btnPayNow.setVisibility(View.VISIBLE);
+            }
         }
 
-        btnPayNow.setOnClickListener(v -> {
-            // FIXED CONTEXT
-            Toast.makeText(InvoicesActivity.this, "Processing Payment...", Toast.LENGTH_SHORT).show();
-            mInvoicesRef.child(invoiceId).child("status").setValue("Paid").addOnSuccessListener(aVoid -> {
-                Toast.makeText(InvoicesActivity.this, "Payment Successful!", Toast.LENGTH_LONG).show();
+        if(btnPayNow != null) {
+            btnPayNow.setOnClickListener(v -> {
+                Toast.makeText(InvoicesActivity.this, "Processing Payment...", Toast.LENGTH_SHORT).show();
+                mInvoicesRef.child(invoiceId).child("status").setValue("Paid").addOnSuccessListener(aVoid -> {
+                    Toast.makeText(InvoicesActivity.this, "Payment Successful!", Toast.LENGTH_LONG).show();
+                });
             });
-        });
+        }
 
         invoicesContainer.addView(cardView);
     }
@@ -185,7 +210,11 @@ public class InvoicesActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mJobOrdersRef != null && jobOrdersListener != null) mJobOrdersRef.removeEventListener(jobOrdersListener);
-        if (mInvoicesRef != null && invoicesListener != null) mInvoicesRef.removeEventListener(invoicesListener);
+        if (mJobOrdersRef != null && jobOrdersListener != null) {
+            mJobOrdersRef.removeEventListener(jobOrdersListener);
+        }
+        if (mInvoicesRef != null && invoicesListener != null) {
+            mInvoicesRef.removeEventListener(invoicesListener);
+        }
     }
 }

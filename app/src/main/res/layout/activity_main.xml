@@ -112,10 +112,12 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
+
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SERVICE VAULT"
+                android:text="SERVICE VAULT (HISTORY BOOK)"
                 android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
@@ -123,7 +125,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="160dp"
+                android:layout_height="wrap_content"
                 android:background="@drawable/bg_outlined_card"
                 android:orientation="vertical"
                 android:layout_marginBottom="24dp">
@@ -133,22 +135,30 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="#222222"
-                    android:padding="8dp">
-
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Date" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Vehicle" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Service" android:textColor="@color/text_secondary" android:textSize="12sp"/>
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Action" android:textColor="@color/text_secondary" android:textSize="12sp" android:gravity="end"/>
+                    android:padding="12dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.5" android:text="Service" android:textColor="@color/text_secondary" android:textSize="12sp"/>
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Mechanic" android:textColor="@color/text_secondary" android:textSize="12sp"/>
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Cost" android:textColor="@color/text_secondary" android:textSize="12sp" android:gravity="end"/>
                 </LinearLayout>
 
-                <TextView
+                <LinearLayout
+                    android:id="@+id/serviceVaultContainer"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="No Service History Found"
-                    android:textStyle="italic"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:id="@+id/tvNoHistory"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="20dp"
+                        android:text="No Service History Found"
+                        android:textStyle="italic"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp" />
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout

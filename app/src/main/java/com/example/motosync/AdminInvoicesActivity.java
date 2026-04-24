@@ -75,7 +75,15 @@ public class AdminInvoicesActivity extends AppCompatActivity {
         if(navManageCustomers != null) navManageCustomers.setOnClickListener(v -> { startActivity(new Intent(AdminInvoicesActivity.this, AdminCustomersActivity.class)); finish(); });
 
         LinearLayout navManageReports = findViewById(R.id.navManageReports);
-        if(navManageReports != null) navManageReports.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START)); // We are already here!
+        if(navManageReports != null) navManageReports.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+
+
+        LinearLayout btnOpenHistoryBook = findViewById(R.id.btnOpenHistoryBook);
+        if (btnOpenHistoryBook != null) {
+            btnOpenHistoryBook.setOnClickListener(v -> {
+                startActivity(new Intent(this, AdminHistoryActivity.class));
+            });
+        }
 
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {

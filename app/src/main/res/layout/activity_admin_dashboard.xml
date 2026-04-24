@@ -139,8 +139,11 @@
                             android:textStyle="bold"
                             android:textSize="28sp"
                             android:layout_marginTop="8dp"/>
+
                     </LinearLayout>
+
                 </LinearLayout>
+
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -165,7 +168,23 @@
                         android:textSize="24sp"
                         android:layout_marginTop="8dp"/>
                 </LinearLayout>
-
+                <LinearLayout
+                    android:id="@+id/btnOpenHistoryBook"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_button_primary"
+                    android:gravity="center"
+                    android:padding="16dp"
+                    android:layout_marginTop="16dp"
+                    android:clickable="true">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="OPEN HISTORY BOOK"
+                        android:textColor="#FFFFFF"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+                </LinearLayout>
             </LinearLayout>
         </ScrollView>
     </LinearLayout>
@@ -213,6 +232,10 @@
                 <LinearLayout android:id="@+id/navManageReports" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                     <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_info_details" app:tint="@color/text_primary" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Invoices &amp; Reports" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/navAdminHistory" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@@drawable/bg_button_dark" android:padding="12dp" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_recent_history" app:tint="@color/text_primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="History Book" android:textColor="@color/text_primary" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
 

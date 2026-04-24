@@ -104,6 +104,12 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         LinearLayout navManageCustomers = findViewById(R.id.navManageCustomers);
         if(navManageCustomers != null) navManageCustomers.setOnClickListener(v -> { startActivity(new Intent(AdminJobOrderActivity.this, AdminCustomersActivity.class)); finish(); });
 
+        LinearLayout btnOpenHistoryBook = findViewById(R.id.btnOpenHistoryBook);
+        if (btnOpenHistoryBook != null) {
+            btnOpenHistoryBook.setOnClickListener(v -> {
+                startActivity(new Intent(AdminJobOrderActivity.this, AdminHistoryActivity.class));
+            });
+        }
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
             Toast.makeText(AdminJobOrderActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
@@ -191,6 +197,10 @@ public class AdminJobOrderActivity extends AppCompatActivity {
                 }
 
                 for (DataSnapshot ds : snapshot.getChildren()) {
+                    // THE MAGIC TRICK: Skip this job if it has been pushed to history!
+                    Boolean isArchived = ds.child("isArchived").getValue(Boolean.class);
+                    if (isArchived != null && isArchived) continue;
+
                     String jobId = ds.child("jobOrderId").getValue(String.class);
                     String invoiceId = ds.child("invoiceId").getValue(String.class);
                     String apptId = ds.child("appointmentId").getValue(String.class);
@@ -272,6 +282,25 @@ public class AdminJobOrderActivity extends AppCompatActivity {
             default: tvStatus.setBackgroundResource(R.drawable.bg_badge_green); break;
         }
 
+        // --- NEW: THE PUSH TO HISTORY BUTTON ---
+        LinearLayout btnArchiveJob = cardView.findViewById(R.id.btnArchiveJob);
+        if ("Completed".equalsIgnoreCase(status)) {
+            btnArchiveJob.setVisibility(View.VISIBLE);
+            btnArchiveJob.setOnClickListener(v -> {
+                new AlertDialog.Builder(AdminJobOrderActivity.this)
+                        .setTitle("Push to History Book?")
+                        .setMessage("This will remove the job from your active screen and move it to the customer's Service Vault. Continue?")
+                        .setPositiveButton("Push Data", (dialog, which) -> {
+                            mJobOrdersRef.child(jobId).child("isArchived").setValue(true);
+                            Toast.makeText(AdminJobOrderActivity.this, "Data pushed to Customer Vault!", Toast.LENGTH_SHORT).show();
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
+        } else {
+            btnArchiveJob.setVisibility(View.GONE);
+        }
+
         LinearLayout btnUpdateStatus = cardView.findViewById(R.id.btnUpdateStatus);
         btnUpdateStatus.setOnClickListener(v -> {
             String[] statusOptions = {"Pending", "In Progress", "On Hold", "Completed", "Cancelled"};
@@ -315,7 +344,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
             mJobOrdersRef.child(jobId).removeValue();
             if (invoiceId != null) mInvoicesRef.child(invoiceId).removeValue();
             if (apptId != null) mAppointmentsRef.child(apptId).child("status").setValue("Approved");
-            Toast.makeText(AdminJobOrderActivity.this, "Job Order & Connected Invoice Deleted", Toast.LENGTH_SHORT).show();
+            Toast.makeText(AdminJobOrderActivity.this, "Job Order Deleted", Toast.LENGTH_SHORT).show();
         });
 
         jobOrdersContainer.addView(cardView);

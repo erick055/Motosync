@@ -62,6 +62,9 @@
             android:name=".AdminInventoryActivity"
             android:exported="false" />
         <activity
+            android:name=".AdminHistoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".SplashActivity"
             android:exported="true">
 

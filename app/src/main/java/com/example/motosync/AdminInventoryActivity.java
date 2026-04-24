@@ -245,6 +245,13 @@ public class AdminInventoryActivity extends AppCompatActivity {
         View navReports = findViewById(R.id.navManageReports);
         if (navReports != null) navReports.setOnClickListener(v -> { startActivity(new Intent(this, AdminInvoicesActivity.class)); finish(); });
 
+        LinearLayout btnOpenHistoryBook = findViewById(R.id.btnOpenHistoryBook);
+        if (btnOpenHistoryBook != null) {
+            btnOpenHistoryBook.setOnClickListener(v -> {
+                startActivity(new Intent(this, AdminHistoryActivity.class));
+            });
+        }
+
         View btnLogout = findViewById(R.id.btnLogoutMenu);
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {

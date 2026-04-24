@@ -90,6 +90,13 @@ public class AdminDashboardActivity extends AppCompatActivity {
         LinearLayout navManageReports = findViewById(R.id.navManageReports);
         if(navManageReports != null) navManageReports.setOnClickListener(v -> { startActivity(new Intent(AdminDashboardActivity.this, AdminInvoicesActivity.class)); finish(); });
 
+        LinearLayout btnOpenHistoryBook = findViewById(R.id.btnOpenHistoryBook);
+        if (btnOpenHistoryBook != null) {
+            btnOpenHistoryBook.setOnClickListener(v -> {
+                startActivity(new Intent(AdminDashboardActivity.this, AdminHistoryActivity.class));
+            });
+        }
+
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
             Toast.makeText(AdminDashboardActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
@@ -98,6 +105,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
 
         // Initialize Firebase Connections
         mInvoicesRef = FirebaseDatabase.getInstance().getReference("Invoices");

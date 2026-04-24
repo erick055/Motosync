@@ -75,34 +75,28 @@
         <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:scrollbars="none">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                <LinearLayout android:id="@+id/navAdminDashboard" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_sort_by_size" app:tint="@color/text_primary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Admin Dashboard" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navDashboard" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_sort_by_size" app:tint="@color/text_primary" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dashboard" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
-                <LinearLayout android:id="@+id/navManageBookings" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_agenda" app:tint="@color/text_primary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Appointments" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navBookService" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_my_calendar" app:tint="@color/text_primary" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Book Service" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
-                <LinearLayout android:id="@+id/navJobOrders" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_edit" app:tint="@color/text_primary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Job Orders" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navMyVehicles" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_directions" app:tint="@color/text_primary" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="My Vehicles" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
-                <LinearLayout android:id="@+id/navManageCustomers" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_myplaces" app:tint="@color/text_primary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Customer Directory" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navMyOrders" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_agenda" app:tint="@color/text_primary" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="My Orders" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
-                <LinearLayout android:id="@+id/navManageServices" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_manage" app:tint="@color/text_primary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Services &amp; Pricing" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navMyInvoices" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_menu_active" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_info_details" app:tint="#000000" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="My Invoices" android:textColor="#000000" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
-                <LinearLayout android:id="@+id/navManageReports" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_menu_active" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_info_details" app:tint="#000000" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Invoices &amp; Reports" android:textColor="#000000" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
+                <LinearLayout android:id="@+id/navProfile" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_button_dark" android:padding="12dp" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                    <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_manage" app:tint="@color/text_primary" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="My Profile" android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
             </LinearLayout>

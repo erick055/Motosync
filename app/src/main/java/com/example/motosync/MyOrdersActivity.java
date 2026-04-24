@@ -23,10 +23,19 @@ import com.google.firebase.database.ValueEventListener;
 public class MyOrdersActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
+
+    // --- NEW: We need to listen to BOTH databases! ---
+    private DatabaseReference mAppointmentsRef;
     private DatabaseReference mJobOrdersRef;
+
     private LinearLayout ordersContainer;
     private String customerName;
 
+    // Data Snapshots to hold our real-time data
+    private DataSnapshot lastAppointmentsSnapshot;
+    private DataSnapshot lastJobOrdersSnapshot;
+
+    private ValueEventListener appointmentsListener;
     private ValueEventListener jobOrdersListener;
 
     @Override
@@ -34,7 +43,10 @@ public class MyOrdersActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_orders);
 
+        // Connect to Firebase
+        mAppointmentsRef = FirebaseDatabase.getInstance().getReference("Appointments");
         mJobOrdersRef = FirebaseDatabase.getInstance().getReference("JobOrders");
+
         ordersContainer = findViewById(R.id.ordersContainer);
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
@@ -83,40 +95,29 @@ public class MyOrdersActivity extends AppCompatActivity {
             finish();
         });
 
-        fetchMyJobOrders();
+        // Start listening to the cloud!
+        fetchMyOrdersRealTime();
     }
 
-    private void fetchMyJobOrders() {
+    private void fetchMyOrdersRealTime() {
+        // 1. Listen to Appointments (Brand new bookings)
+        appointmentsListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                lastAppointmentsSnapshot = snapshot;
+                refreshUI();
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        mAppointmentsRef.addValueEventListener(appointmentsListener);
+
+        // 2. Listen to Job Orders (Admin approved bookings)
         jobOrdersListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                ordersContainer.removeAllViews();
-                boolean found = false;
-
-                for (DataSnapshot ds : snapshot.getChildren()) {
-                    String jobCustomerName = ds.child("customerName").getValue(String.class);
-
-                    if (jobCustomerName != null && jobCustomerName.equalsIgnoreCase(customerName)) {
-                        String service = ds.child("serviceType").getValue(String.class);
-                        String mechanic = ds.child("assignedMechanic").getValue(String.class);
-                        String cost = ds.child("cost").getValue(String.class);
-                        String status = ds.child("status").getValue(String.class);
-
-                        if (cost == null) cost = "0.00";
-                        if (status == null) status = "Pending";
-
-                        addOrderCardToScreen(service, mechanic, cost, status);
-                        found = true;
-                    }
-                }
-
-                if (!found) {
-                    TextView noData = new TextView(MyOrdersActivity.this);
-                    noData.setText("You have no active orders.");
-                    noData.setTextColor(getResources().getColor(R.color.text_secondary));
-                    noData.setTextSize(16f);
-                    ordersContainer.addView(noData);
-                }
+                lastJobOrdersSnapshot = snapshot;
+                refreshUI();
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
@@ -124,24 +125,82 @@ public class MyOrdersActivity extends AppCompatActivity {
         mJobOrdersRef.addValueEventListener(jobOrdersListener);
     }
 
+    private void refreshUI() {
+        // Wait until BOTH databases have responded before drawing the screen
+        if (lastAppointmentsSnapshot == null || lastJobOrdersSnapshot == null || ordersContainer == null) return;
+
+        ordersContainer.removeAllViews();
+        boolean found = false;
+
+        // Loop through all Appointments to find this customer's requests
+        for (DataSnapshot apptDs : lastAppointmentsSnapshot.getChildren()) {
+            String apptCustomerName = apptDs.child("customerName").getValue(String.class);
+
+            if (apptCustomerName != null && apptCustomerName.equalsIgnoreCase(customerName)) {
+
+                String apptId = apptDs.child("appointmentId").getValue(String.class);
+                String service = apptDs.child("serviceType").getValue(String.class);
+                String status = apptDs.child("status").getValue(String.class);
+
+                // Default values if Admin hasn't touched it yet
+                String displayMechanic = "Unassigned";
+                String displayCost = "TBD";
+                if (status == null) status = "Pending";
+
+                // SMART CHECK: Does this Appointment have a connected Job Order yet?
+                for (DataSnapshot jobDs : lastJobOrdersSnapshot.getChildren()) {
+                    String jobApptId = jobDs.child("appointmentId").getValue(String.class);
+
+                    if (jobApptId != null && jobApptId.equals(apptId)) {
+                        // Yes! The Admin approved it. Override the defaults with the real Job Data.
+                        String mech = jobDs.child("assignedMechanic").getValue(String.class);
+                        String cost = jobDs.child("cost").getValue(String.class);
+                        String jobStatus = jobDs.child("status").getValue(String.class);
+
+                        if (mech != null) displayMechanic = mech;
+                        if (cost != null) displayCost = "₱ " + cost; // Add peso sign to real numbers
+                        if (jobStatus != null) status = jobStatus;
+                        break;
+                    }
+                }
+
+                // Draw the card to the screen
+                addOrderCardToScreen(service, displayMechanic, displayCost, status);
+                found = true;
+            }
+        }
+
+        // If the customer has literally booked nothing yet
+        if (!found) {
+            TextView noData = new TextView(MyOrdersActivity.this);
+            noData.setText("You have no active orders or appointments.");
+            noData.setTextColor(getResources().getColor(R.color.text_secondary));
+            noData.setTextSize(16f);
+            ordersContainer.addView(noData);
+        }
+    }
+
     private void addOrderCardToScreen(String service, String mechanic, String cost, String status) {
         View cardView = LayoutInflater.from(this).inflate(R.layout.item_my_order, ordersContainer, false);
 
         ((TextView) cardView.findViewById(R.id.tvOrderService)).setText(service);
         ((TextView) cardView.findViewById(R.id.tvOrderMechanic)).setText("Mechanic: " + mechanic);
-        ((TextView) cardView.findViewById(R.id.tvOrderCost)).setText("Est. Cost: ₱ " + cost);
+        ((TextView) cardView.findViewById(R.id.tvOrderCost)).setText("Est. Cost: " + cost);
 
         TextView tvStatus = cardView.findViewById(R.id.tvOrderStatus);
-        tvStatus.setText(status);
+        if (tvStatus != null) {
+            tvStatus.setText(status);
 
-        // Dynamically style the status badge
-        switch (status) {
-            case "Completed": tvStatus.setBackgroundResource(R.drawable.bg_badge_completed); break;
-            case "Cancelled": tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled); break;
-            case "On Hold": tvStatus.setBackgroundResource(R.drawable.bg_badge_purple); break;
-            case "Pending": tvStatus.setBackgroundResource(R.drawable.bg_badge_pending); break;
-            case "In Progress": tvStatus.setBackgroundResource(R.drawable.bg_badge_primary); break;
-            default: tvStatus.setBackgroundResource(R.drawable.bg_badge_green); break;
+            // Dynamically style the status badge
+            switch (status) {
+                case "Completed": tvStatus.setBackgroundResource(R.drawable.bg_badge_completed); break;
+                case "Declined":
+                case "Cancelled": tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled); break;
+                case "On Hold": tvStatus.setBackgroundResource(R.drawable.bg_badge_purple); break;
+                case "Pending": tvStatus.setBackgroundResource(R.drawable.bg_badge_pending); break;
+                case "In Progress": tvStatus.setBackgroundResource(R.drawable.bg_badge_primary); break;
+                default: tvStatus.setBackgroundResource(R.drawable.bg_badge_green); break;
+            }
         }
 
         ordersContainer.addView(cardView);
@@ -151,6 +210,9 @@ public class MyOrdersActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (mAppointmentsRef != null && appointmentsListener != null) {
+            mAppointmentsRef.removeEventListener(appointmentsListener);
+        }
         if (mJobOrdersRef != null && jobOrdersListener != null) {
             mJobOrdersRef.removeEventListener(jobOrdersListener);
         }
