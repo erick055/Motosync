@@ -100,12 +100,10 @@ public class AdminHistoryActivity extends AppCompatActivity {
 
         findViewById(R.id.navAdminHistory).setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
 
-        findViewById(R.id.btnLogoutMenu).setOnClickListener(v -> {
-            Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
+            Toast.makeText(AdminHistoryActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            // Call the shared AuthUtils method
+            AuthUtils.logoutUser(AdminHistoryActivity.this);
         });
 
         // Initialize our spreadsheet headers!

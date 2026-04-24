@@ -1,6 +1,7 @@
 package com.example.motosync;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -10,16 +11,21 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase;
+    private FirebaseAuth mAuth; // 1. Declare FirebaseAuth
     private String currentLoginType = "customer"; // Tracks the active tab
 
     @Override
@@ -27,6 +33,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // 2. Initialize Auth and Database
+        mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference("Users");
 
         // UI Elements
@@ -43,20 +51,16 @@ public class LoginActivity extends AppCompatActivity {
         if (tabCustomer != null && tabAdmin != null) {
             tabCustomer.setOnClickListener(v -> {
                 currentLoginType = "customer";
-                // Set Customer Active
                 tabCustomer.setBackgroundResource(R.drawable.bg_button_primary);
                 tabCustomer.setTextColor(getResources().getColor(R.color.bg_dark));
-                // Set Admin Inactive
                 tabAdmin.setBackgroundResource(android.R.color.transparent);
                 tabAdmin.setTextColor(getResources().getColor(R.color.text_secondary));
             });
 
             tabAdmin.setOnClickListener(v -> {
                 currentLoginType = "admin";
-                // Set Admin Active
                 tabAdmin.setBackgroundResource(R.drawable.bg_button_primary);
                 tabAdmin.setTextColor(getResources().getColor(R.color.bg_dark));
-                // Set Customer Inactive
                 tabCustomer.setBackgroundResource(android.R.color.transparent);
                 tabCustomer.setTextColor(getResources().getColor(R.color.text_secondary));
             });
@@ -75,56 +79,80 @@ public class LoginActivity extends AppCompatActivity {
 
                 Toast.makeText(LoginActivity.this, "Authenticating...", Toast.LENGTH_SHORT).show();
 
-                Query query = mDatabase.orderByChild("email").equalTo(email);
-                query.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                                User user = userSnapshot.getValue(User.class);
+                // 3. Authenticate using FirebaseAuth instead of Realtime Database
+                mAuth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isSuccessful()) {
+                                    FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
-                                if (user != null && user.password.equals(password)) {
-
-                                    // SECURITY CHECK: Ensure they are using the right tab!
-                                    if (!user.role.equals(currentLoginType)) {
-                                        Toast.makeText(LoginActivity.this, "Access Denied: Please use the " + user.role + " tab.", Toast.LENGTH_LONG).show();
-                                        return;
+                                    if (firebaseUser != null) {
+                                        // 4. Check if the user has verified their email
+                                        if (firebaseUser.isEmailVerified()) {
+                                            // 5. Fetch their role and data from Realtime Database using their UID
+                                            fetchUserDataAndRoute(firebaseUser.getUid());
+                                        } else {
+                                            Toast.makeText(LoginActivity.this, "Please verify your email address first.", Toast.LENGTH_LONG).show();
+                                            mAuth.signOut(); // Sign them out until verified
+                                        }
                                     }
-
-                                    android.content.SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
-                                    android.content.SharedPreferences.Editor editor = prefs.edit();
-                                    editor.putString("FULL_NAME", user.fullName);
-                                    editor.putString("EMAIL", user.email);
-                                    editor.putString("ROLE", user.role);
-                                    editor.apply();
-
-                                    Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
-
-                                    if ("admin".equals(user.role)) {
-                                        startActivity(new Intent(LoginActivity.this, AdminDashboardActivity.class));
-                                    } else {
-                                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                    }
-                                    finish();
                                 } else {
-                                    Toast.makeText(LoginActivity.this, "Incorrect Password.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(LoginActivity.this, "Login Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                                 }
                             }
-                        } else {
-                            Toast.makeText(LoginActivity.this, "No account found.", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(LoginActivity.this, "Database Error", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                        });
             });
         }
 
         if (btnGoToSignUp != null) {
             btnGoToSignUp.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, SignUpActivity.class)));
         }
+    }
+
+    // Helper method to pull the remaining user data (like role) from Realtime DB
+    private void fetchUserDataAndRoute(String userId) {
+        mDatabase.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    User user = dataSnapshot.getValue(User.class);
+
+                    if (user != null) {
+                        // SECURITY CHECK: Ensure they are using the right tab
+                        if (!user.role.equals(currentLoginType)) {
+                            Toast.makeText(LoginActivity.this, "Access Denied: Please use the " + user.role + " tab.", Toast.LENGTH_LONG).show();
+                            mAuth.signOut(); // Kick them out if trying to bypass roles
+                            return;
+                        }
+
+                        // Save data to SharedPreferences
+                        SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString("FULL_NAME", user.fullName);
+                        editor.putString("EMAIL", user.email);
+                        editor.putString("ROLE", user.role);
+                        editor.apply();
+
+                        Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
+
+                        // Route to correct dashboard
+                        if ("admin".equals(user.role)) {
+                            startActivity(new Intent(LoginActivity.this, AdminDashboardActivity.class));
+                        } else {
+                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        }
+                        finish();
+                    }
+                } else {
+                    Toast.makeText(LoginActivity.this, "User data not found in database.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(LoginActivity.this, "Database Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

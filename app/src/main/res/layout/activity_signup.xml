@@ -108,40 +108,7 @@
             android:inputType="textPassword"
             android:textSize="16sp"/>
     </LinearLayout>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Account Type:"
-        android:textColor="@color/text_secondary"
-        android:textSize="14sp"
-        android:layout_marginBottom="8dp"/>
 
-    <RadioGroup
-        android:id="@+id/rgRole"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="32dp">
-
-        <RadioButton
-            android:id="@+id/rbCustomer"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Customer"
-            android:textColor="@color/text_primary"
-            android:buttonTint="@color/teal_accent"
-            android:checked="true"/>
-
-        <RadioButton
-            android:id="@+id/rbAdmin"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Admin"
-            android:textColor="@color/text_primary"
-            android:buttonTint="@color/teal_accent"/>
-    </RadioGroup>
     <LinearLayout
         android:id="@+id/btnGoToSignUp"
         android:layout_width="match_parent"

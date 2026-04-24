@@ -90,11 +90,9 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
 
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
-            Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+            Toast.makeText(AdminAppointmentsActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            // Call the shared AuthUtils method
+            AuthUtils.logoutUser(AdminAppointmentsActivity.this);
         });
 
         // Initialize today's date

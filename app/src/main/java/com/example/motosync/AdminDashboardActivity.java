@@ -99,10 +99,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
             Toast.makeText(AdminDashboardActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(AdminDashboardActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+            // Call the shared AuthUtils method
+            AuthUtils.logoutUser(AdminDashboardActivity.this);
         });
 
 

@@ -66,16 +66,17 @@ public class ProfileActivity extends AppCompatActivity {
 
         // Handle Logout from the Page Button
         if (btnLogoutPage != null) {
-            btnLogoutPage.setOnClickListener(v -> executeLogout());
+            Toast.makeText(ProfileActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            // Call the shared AuthUtils method
+            AuthUtils.logoutUser(ProfileActivity.this);
         }
 
         // Handle Logout from the Sidebar Menu
-        if (btnLogoutMenu != null) {
-            btnLogoutMenu.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                executeLogout();
-            });
-        }
+        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
+            Toast.makeText(ProfileActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            // Call the shared AuthUtils method
+            AuthUtils.logoutUser(ProfileActivity.this);
+        });
 
         // --- UNIVERSAL SIDEBAR CLICKS ---
         if (navDashboard != null) {
@@ -124,12 +125,6 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    // A helper method to handle routing the user to the login screen
-    private void executeLogout() {
-        Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
-    }
+
+
 }

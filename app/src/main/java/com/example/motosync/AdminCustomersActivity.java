@@ -113,16 +113,11 @@ public class AdminCustomersActivity extends AppCompatActivity {
         });
 
         // Handle Logout
-        if (btnLogoutMenu != null) {
-            btnLogoutMenu.setOnClickListener(v -> {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-            });
-        }
+        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
+            Toast.makeText(AdminCustomersActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            // Call the shared AuthUtils method
+            AuthUtils.logoutUser(AdminCustomersActivity.this);
+        });
 
         fetchCustomers();
     }

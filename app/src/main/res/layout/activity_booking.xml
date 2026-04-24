@@ -29,7 +29,9 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@android:drawable/ic_menu_sort_by_size"
-                    app:tint="@color/text_primary" />
+                    app:tint="@color/text_primary"
+                    android:clickable="true"
+                    android:focusable="true"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -94,7 +96,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SERVICE TYPE"
+                    android:text="DESCRIBE THE PROBLEM"
                     android:textColor="@color/text_secondary"
                     android:textSize="10sp"
                     android:textStyle="bold"
@@ -102,14 +104,22 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:background="@drawable/bg_edittext_dark"
+                    android:padding="12dp"
                     android:layout_marginBottom="20dp">
-                    <Spinner
-                        android:id="@+id/spinnerService"
+                    <EditText
+                        android:id="@+id/etProblemDescription"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:backgroundTint="@color/text_secondary"/>
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:hint="E.g., Engine is making a clicking sound, or needs an oil change..."
+                        android:textColorHint="@color/text_secondary"
+                        android:textColor="@color/text_primary"
+                        android:inputType="textMultiLine"
+                        android:minLines="3"
+                        android:gravity="top|start"
+                        android:textSize="14sp"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -142,21 +152,20 @@
                             android:background="@drawable/bg_edittext_dark"
                             android:gravity="center_vertical"
                             android:paddingHorizontal="12dp"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/tvDate"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="dd/mm/yyyy"
-                                android:textColor="@color/text_secondary"/>
-
+                            android:clickable="true">
                             <ImageView
                                 android:layout_width="16dp"
                                 android:layout_height="16dp"
                                 android:src="@android:drawable/ic_menu_my_calendar"
-                                app:tint="@color/text_secondary"/>
+                                app:tint="@color/text_secondary"
+                                android:layout_marginEnd="8dp"/>
+                            <TextView
+                                android:id="@+id/tvDate"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Select Date"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp"/>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -183,21 +192,20 @@
                             android:background="@drawable/bg_edittext_dark"
                             android:gravity="center_vertical"
                             android:paddingHorizontal="12dp"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/tvTime"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="00:00"
-                                android:textColor="@color/text_secondary"/>
-
+                            android:clickable="true">
                             <ImageView
                                 android:layout_width="16dp"
                                 android:layout_height="16dp"
                                 android:src="@android:drawable/ic_menu_recent_history"
-                                app:tint="@color/text_secondary"/>
+                                app:tint="@color/text_secondary"
+                                android:layout_marginEnd="8dp"/>
+                            <TextView
+                                android:id="@+id/tvTime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Select Time"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -206,16 +214,16 @@
                     android:id="@+id/btnConfirmBooking"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_button_green"
+                    android:background="@drawable/bg_button_primary"
                     android:gravity="center"
-                    android:padding="14dp"
+                    android:padding="16dp"
                     android:clickable="true">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Confirm Booking"
-                        android:textColor="@color/bg_dark"
+                        android:text="CONFIRM BOOKING"
+                        android:textColor="#FFFFFF"
                         android:textStyle="bold"
                         android:textSize="14sp"/>
                 </LinearLayout>

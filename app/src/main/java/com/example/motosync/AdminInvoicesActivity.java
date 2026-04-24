@@ -87,10 +87,8 @@ public class AdminInvoicesActivity extends AppCompatActivity {
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
             Toast.makeText(AdminInvoicesActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(AdminInvoicesActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+            // Call the shared AuthUtils method
+            AuthUtils.logoutUser(AdminInvoicesActivity.this);
         });
 
 

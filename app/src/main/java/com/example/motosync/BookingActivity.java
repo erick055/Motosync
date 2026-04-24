@@ -6,25 +6,35 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class BookingActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
     private DatabaseReference mDatabase;
+    private DatabaseReference mVehiclesRef;
+    private ValueEventListener vehiclesListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,29 +42,27 @@ public class BookingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_booking);
 
         mDatabase = FirebaseDatabase.getInstance().getReference("Appointments");
+        mVehiclesRef = FirebaseDatabase.getInstance().getReference("Vehicles");
 
         // UI Setup
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
 
-        Spinner spinnerService = findViewById(R.id.spinnerService);
-        Spinner spinnerVehicle = findViewById(R.id.spinnerVehicle);
+        // NEW: Problem Description Box instead of Spinner
+        EditText etProblemDescription = findViewById(R.id.etProblemDescription);
 
-        // Date and Time Elements
+        Spinner spinnerVehicle = findViewById(R.id.spinnerVehicle);
         LinearLayout btnPickDate = findViewById(R.id.btnPickDate);
         LinearLayout btnPickTime = findViewById(R.id.btnPickTime);
         TextView tvDate = findViewById(R.id.tvDate);
         TextView tvTime = findViewById(R.id.tvTime);
-
         LinearLayout btnConfirmBooking = findViewById(R.id.btnConfirmBooking);
 
-        // --- FETCH LOGGED-IN CUSTOMER DETAILS ---
         SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
         String customerName = prefs.getString("FULL_NAME", "Unknown Customer");
         String customerEmail = prefs.getString("EMAIL", "Unknown Email");
         String savedRole = prefs.getString("ROLE", "customer");
 
-        // Sync Sidebar Name
         TextView tvSidebarName = findViewById(R.id.tvSidebarName);
         TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
         if (tvSidebarName != null) tvSidebarName.setText(customerName);
@@ -63,88 +71,101 @@ public class BookingActivity extends AppCompatActivity {
             tvSidebarRole.setText(displayRole + " Account");
         }
 
-        // --- FIX 1: PROPER SPINNER SETUP ---
-        String[] services = {"Change Oil", "Tune Up", "Brake Pad Replacement", "General Checkup"};
-        // Use simple_spinner_item for the collapsed view, and dropdown_item for the expanded list
-        ArrayAdapter<String> serviceAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, services);
-        serviceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerService.setAdapter(serviceAdapter);
+        // --- DYNAMIC FIREBASE VEHICLE SPINNER SETUP ---
+        List<String> vehicleList = new ArrayList<>();
+        vehicleList.add("Loading vehicles...");
 
-        String[] vehicles = {"Yamaha R1 (ABC-123)", "Honda Click 125i (XYZ-987)", "Kawasaki NMAX (DEF-456)"};
-        ArrayAdapter<String> vehicleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, vehicles);
+        ArrayAdapter<String> vehicleAdapter = new ArrayAdapter<>(this, R.layout.item_spinner, vehicleList);
         vehicleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerVehicle.setAdapter(vehicleAdapter);
 
-        // --- FIX 2: DATE PICKER LOGIC ---
+        // Fetch exactly the logged-in customer's vehicles
+        vehiclesListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                vehicleList.clear();
+
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String owner = ds.child("customerName").getValue(String.class);
+                    if (owner != null && owner.equalsIgnoreCase(customerName)) {
+                        String brand = ds.child("brand").getValue(String.class);
+                        String model = ds.child("model").getValue(String.class);
+                        String plate = ds.child("plate").getValue(String.class);
+                        vehicleList.add(brand + " " + model + " (" + plate + ")");
+                    }
+                }
+
+                if (vehicleList.isEmpty()) {
+                    vehicleList.add("No Vehicles Found (Please add one)");
+                }
+                vehicleAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        mVehiclesRef.addValueEventListener(vehiclesListener);
+
+        // --- DATE PICKER ---
         if (btnPickDate != null) {
             btnPickDate.setOnClickListener(v -> {
                 Calendar calendar = Calendar.getInstance();
-                int year = calendar.get(Calendar.YEAR);
-                int month = calendar.get(Calendar.MONTH);
-                int day = calendar.get(Calendar.DAY_OF_MONTH);
-
                 DatePickerDialog datePickerDialog = new DatePickerDialog(BookingActivity.this,
                         (view, selectedYear, selectedMonth, selectedDay) -> {
-                            // Months are indexed from 0, so add 1
                             String formattedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
                             tvDate.setText(formattedDate);
-                        }, year, month, day);
-
-                // Optional: Prevent users from booking in the past
+                        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
                 datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
                 datePickerDialog.show();
             });
         }
 
-        // --- FIX 3: TIME PICKER LOGIC ---
+        // --- TIME PICKER ---
         if (btnPickTime != null) {
             btnPickTime.setOnClickListener(v -> {
                 Calendar calendar = Calendar.getInstance();
-                int hour = calendar.get(Calendar.HOUR_OF_DAY);
-                int minute = calendar.get(Calendar.MINUTE);
-
                 TimePickerDialog timePickerDialog = new TimePickerDialog(BookingActivity.this,
                         (view, selectedHour, selectedMinute) -> {
-                            // Format to ensure it shows 09:05 instead of 9:5
                             String formattedTime = String.format(Locale.getDefault(), "%02d:%02d", selectedHour, selectedMinute);
                             tvTime.setText(formattedTime);
-                        }, hour, minute, false); // 'false' for 12-hour AM/PM format, 'true' for 24-hour
+                        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false);
                 timePickerDialog.show();
             });
         }
 
-        // --- SUBMIT BOOKING TO FIREBASE ---
+        // --- SUBMIT BOOKING ---
         if (btnConfirmBooking != null) {
             btnConfirmBooking.setOnClickListener(v -> {
+                // Get the text from the Problem Description box
+                String selectedService = etProblemDescription.getText().toString().trim();
+
                 String dateStr = tvDate.getText().toString().trim();
                 String timeStr = tvTime.getText().toString().trim();
-                String selectedService = spinnerService.getSelectedItem().toString();
                 String selectedVehicle = spinnerVehicle.getSelectedItem().toString();
 
-                if (dateStr.equals("dd/mm/yyyy")) {
+                if (selectedService.isEmpty()) {
+                    Toast.makeText(BookingActivity.this, "Please describe the problem.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (dateStr.equals("dd/mm/yyyy") || dateStr.equals("Select Date")) {
                     Toast.makeText(BookingActivity.this, "Please select a date.", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (timeStr.equals("00:00")) {
+                if (timeStr.equals("00:00") || timeStr.equals("Select Time")) {
                     Toast.makeText(BookingActivity.this, "Please select a time.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (selectedVehicle.equals("Loading vehicles...") || selectedVehicle.equals("No Vehicles Found (Please add one)")) {
+                    Toast.makeText(BookingActivity.this, "Please add a vehicle first in 'My Vehicles'.", Toast.LENGTH_LONG).show();
                     return;
                 }
 
                 String fullDateAndTime = dateStr + " at " + timeStr;
-
                 Toast.makeText(BookingActivity.this, "Sending Request...", Toast.LENGTH_SHORT).show();
 
                 String appointmentId = mDatabase.push().getKey();
-
                 Appointment newAppointment = new Appointment(
-                        appointmentId,
-                        customerName,
-                        customerEmail,
-                        selectedService,
-                        selectedVehicle,
-                        fullDateAndTime,
-                        "Pending"
+                        appointmentId, customerName, customerEmail, selectedService, selectedVehicle, fullDateAndTime, "Pending"
                 );
 
                 if (appointmentId != null) {
@@ -153,13 +174,12 @@ public class BookingActivity extends AppCompatActivity {
                                 Toast.makeText(BookingActivity.this, "Booking Confirmed!", Toast.LENGTH_LONG).show();
                                 startActivity(new Intent(BookingActivity.this, MyOrdersActivity.class));
                                 finish();
-                            })
-                            .addOnFailureListener(e -> Toast.makeText(BookingActivity.this, "Failed to book: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                            });
                 }
             });
         }
 
-        // --- SIDEBAR NAVIGATION ---
+        // --- 100% SECURE SIDEBAR NAVIGATION ---
         if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
         LinearLayout navDashboard = findViewById(R.id.navDashboard);
@@ -167,6 +187,7 @@ public class BookingActivity extends AppCompatActivity {
         LinearLayout navMyVehicles = findViewById(R.id.navMyVehicles);
         LinearLayout navMyOrders = findViewById(R.id.navMyOrders);
         LinearLayout navMyInvoices = findViewById(R.id.navMyInvoices);
+        LinearLayout navProfile = findViewById(R.id.navProfile);
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
 
         if (navDashboard != null) navDashboard.setOnClickListener(v -> { startActivity(new Intent(this, MainActivity.class)); finish(); });
@@ -174,15 +195,21 @@ public class BookingActivity extends AppCompatActivity {
         if (navMyVehicles != null) navMyVehicles.setOnClickListener(v -> { startActivity(new Intent(this, VehiclesActivity.class)); finish(); });
         if (navMyOrders != null) navMyOrders.setOnClickListener(v -> { startActivity(new Intent(this, MyOrdersActivity.class)); finish(); });
         if (navMyInvoices != null) navMyInvoices.setOnClickListener(v -> { startActivity(new Intent(this, InvoicesActivity.class)); finish(); });
+        if (navProfile != null) navProfile.setOnClickListener(v -> { startActivity(new Intent(this, ProfileActivity.class)); finish(); });
 
-        if (btnLogoutMenu != null) {
-            btnLogoutMenu.setOnClickListener(v -> {
-                Toast.makeText(BookingActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(BookingActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-            });
+
+        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
+            Toast.makeText(BookingActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            // Call the shared AuthUtils method
+            AuthUtils.logoutUser(BookingActivity.this);
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mVehiclesRef != null && vehiclesListener != null) {
+            mVehiclesRef.removeEventListener(vehiclesListener);
         }
     }
 }

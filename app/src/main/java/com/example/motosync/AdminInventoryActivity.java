@@ -251,14 +251,12 @@ public class AdminInventoryActivity extends AppCompatActivity {
             finish();
         });
 
-        View btnLogout = findViewById(R.id.btnLogoutMenu);
-        if (btnLogout != null) {
-            btnLogout.setOnClickListener(v -> {
-                Intent intent = new Intent(this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-            });
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
+            Toast.makeText(AdminInventoryActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            // Call the shared AuthUtils method
+            AuthUtils.logoutUser(AdminInventoryActivity.this);
+        });
         }
-    }
+
 }

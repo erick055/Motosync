@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -86,10 +87,8 @@ public class InvoicesActivity extends AppCompatActivity {
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
             Toast.makeText(InvoicesActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(InvoicesActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+            // Call the shared AuthUtils method
+            AuthUtils.logoutUser(InvoicesActivity.this);
         });
 
         fetchMyInvoices();
@@ -163,6 +162,8 @@ public class InvoicesActivity extends AppCompatActivity {
             noData.setText("You have no completed invoices yet.");
             noData.setTextColor(getResources().getColor(R.color.text_secondary));
             noData.setTextSize(16f);
+            noData.setPadding(0, 40, 0, 40);
+            noData.setGravity(android.view.Gravity.CENTER);
             invoicesContainer.addView(noData);
         }
     }
@@ -170,7 +171,6 @@ public class InvoicesActivity extends AppCompatActivity {
     private void addInvoiceCardToScreen(String invoiceId, String service, String amount, String status) {
         View cardView = LayoutInflater.from(this).inflate(R.layout.item_invoice, invoicesContainer, false);
 
-        // Correct IDs matching item_invoice.xml
         TextView tvService = cardView.findViewById(R.id.tvInvoiceService);
         if(tvService != null) tvService.setText(service);
 
@@ -182,26 +182,15 @@ public class InvoicesActivity extends AppCompatActivity {
         if(tvId != null) tvId.setText("Invoice Ref: #" + shortId);
 
         TextView tvStatus = cardView.findViewById(R.id.tvInvoiceStatus);
-        LinearLayout btnPayNow = cardView.findViewById(R.id.btnPayNow);
 
         if (tvStatus != null) {
             tvStatus.setText(status);
+            // Just update the colors, NO BUTTON LOGIC!
             if ("Paid".equalsIgnoreCase(status)) {
                 tvStatus.setBackgroundResource(R.drawable.bg_badge_completed);
-                if(btnPayNow != null) btnPayNow.setVisibility(View.GONE);
             } else {
                 tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled);
-                if(btnPayNow != null) btnPayNow.setVisibility(View.VISIBLE);
             }
-        }
-
-        if(btnPayNow != null) {
-            btnPayNow.setOnClickListener(v -> {
-                Toast.makeText(InvoicesActivity.this, "Processing Payment...", Toast.LENGTH_SHORT).show();
-                mInvoicesRef.child(invoiceId).child("status").setValue("Paid").addOnSuccessListener(aVoid -> {
-                    Toast.makeText(InvoicesActivity.this, "Payment Successful!", Toast.LENGTH_LONG).show();
-                });
-            });
         }
 
         invoicesContainer.addView(cardView);
