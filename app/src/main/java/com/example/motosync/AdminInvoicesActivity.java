@@ -32,7 +32,6 @@ public class AdminInvoicesActivity extends AppCompatActivity {
     private DataSnapshot lastJobSnapshot;
     private DataSnapshot lastInvoiceSnapshot;
 
-    // --- MEMORY LEAK PREVENTION VARIABLES ---
     private ValueEventListener jobOrdersListener;
     private ValueEventListener invoicesListener;
 
@@ -55,17 +54,38 @@ public class AdminInvoicesActivity extends AppCompatActivity {
 
         if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        findViewById(R.id.navAdminDashboard).setOnClickListener(v -> { startActivity(new Intent(this, AdminDashboardActivity.class)); finish(); });
-        findViewById(R.id.navManageBookings).setOnClickListener(v -> { startActivity(new Intent(this, AdminAppointmentsActivity.class)); finish(); });
-        findViewById(R.id.navJobOrders).setOnClickListener(v -> { startActivity(new Intent(this, AdminJobOrderActivity.class)); finish(); });
-        findViewById(R.id.navManageReports).setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
-        findViewById(R.id.btnLogoutMenu).setOnClickListener(v -> {
-            Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, LoginActivity.class);
+        // =========================================================
+        // --- 100% SECURE FULL SIDEBAR NAVIGATION ---
+        // =========================================================
+
+        LinearLayout navAdminDashboard = findViewById(R.id.navAdminDashboard);
+        if(navAdminDashboard != null) navAdminDashboard.setOnClickListener(v -> { startActivity(new Intent(AdminInvoicesActivity.this, AdminDashboardActivity.class)); finish(); });
+
+        LinearLayout navManageBookings = findViewById(R.id.navManageBookings);
+        if(navManageBookings != null) navManageBookings.setOnClickListener(v -> { startActivity(new Intent(AdminInvoicesActivity.this, AdminAppointmentsActivity.class)); finish(); });
+
+        LinearLayout navJobOrders = findViewById(R.id.navJobOrders);
+        if(navJobOrders != null) navJobOrders.setOnClickListener(v -> { startActivity(new Intent(AdminInvoicesActivity.this, AdminJobOrderActivity.class)); finish(); });
+
+        // --- THE MISSING BUTTONS ADDED BACK IN! ---
+        LinearLayout navManageServices = findViewById(R.id.navManageServices);
+        if(navManageServices != null) navManageServices.setOnClickListener(v -> { startActivity(new Intent(AdminInvoicesActivity.this, AdminInventoryActivity.class)); finish(); });
+
+        LinearLayout navManageCustomers = findViewById(R.id.navManageCustomers);
+        if(navManageCustomers != null) navManageCustomers.setOnClickListener(v -> { startActivity(new Intent(AdminInvoicesActivity.this, AdminCustomersActivity.class)); finish(); });
+
+        LinearLayout navManageReports = findViewById(R.id.navManageReports);
+        if(navManageReports != null) navManageReports.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START)); // We are already here!
+
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
+            Toast.makeText(AdminInvoicesActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(AdminInvoicesActivity.this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });
+
 
         fetchAllInvoices();
     }
@@ -130,7 +150,7 @@ public class AdminInvoicesActivity extends AppCompatActivity {
         }
 
         if (!found) {
-            TextView noData = new TextView(this);
+            TextView noData = new TextView(AdminInvoicesActivity.this);
             noData.setText("No invoices ready. (Jobs must be marked 'Completed' first)");
             noData.setTextColor(getResources().getColor(R.color.text_secondary));
             noData.setTextSize(16f);
@@ -138,7 +158,7 @@ public class AdminInvoicesActivity extends AppCompatActivity {
         }
     }
 
-    private void addAdminInvoiceCard(String invoiceId, String jobOrderId, String custName, String service, String amount, String status) {
+    private void addAdminInvoiceCard(final String invoiceId, final String jobOrderId, String custName, String service, String amount, String status) {
         View cardView = LayoutInflater.from(this).inflate(R.layout.item_admin_invoice, adminInvoicesContainer, false);
 
         ((TextView) cardView.findViewById(R.id.tvAdminInvService)).setText(service);
@@ -154,7 +174,7 @@ public class AdminInvoicesActivity extends AppCompatActivity {
         LinearLayout btnDelete = cardView.findViewById(R.id.btnAdminDeleteInv);
 
         tvStatus.setText(status);
-        if (status.equals("Paid")) {
+        if ("Paid".equalsIgnoreCase(status)) {
             tvStatus.setBackgroundResource(R.drawable.bg_badge_completed);
             btnMarkPaid.setVisibility(View.GONE);
         } else {
@@ -163,10 +183,10 @@ public class AdminInvoicesActivity extends AppCompatActivity {
         }
 
         btnEditCost.setOnClickListener(v -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(AdminInvoicesActivity.this);
             builder.setTitle("Update Final Cost (₱)");
 
-            final EditText input = new EditText(this);
+            final EditText input = new EditText(AdminInvoicesActivity.this);
             input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
             input.setText(amount);
             int padding = (int) (20 * getResources().getDisplayMetrics().density);
@@ -180,7 +200,7 @@ public class AdminInvoicesActivity extends AppCompatActivity {
                     if (jobOrderId != null) {
                         mJobOrdersRef.child(jobOrderId).child("cost").setValue(newCost);
                     }
-                    Toast.makeText(this, "Cost updated! Customer will see this instantly.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AdminInvoicesActivity.this, "Cost updated! Customer will see this instantly.", Toast.LENGTH_SHORT).show();
                 }
             });
             builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
@@ -189,26 +209,21 @@ public class AdminInvoicesActivity extends AppCompatActivity {
 
         btnMarkPaid.setOnClickListener(v -> {
             mInvoicesRef.child(invoiceId).child("status").setValue("Paid");
-            Toast.makeText(this, "Marked as Paid!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(AdminInvoicesActivity.this, "Marked as Paid!", Toast.LENGTH_SHORT).show();
         });
 
         btnDelete.setOnClickListener(v -> {
             mInvoicesRef.child(invoiceId).removeValue();
-            Toast.makeText(this, "Invoice Deleted", Toast.LENGTH_SHORT).show();
+            Toast.makeText(AdminInvoicesActivity.this, "Invoice Deleted", Toast.LENGTH_SHORT).show();
         });
 
         adminInvoicesContainer.addView(cardView);
     }
 
-    // --- THE KILL SWITCH ---
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mJobOrdersRef != null && jobOrdersListener != null) {
-            mJobOrdersRef.removeEventListener(jobOrdersListener);
-        }
-        if (mInvoicesRef != null && invoicesListener != null) {
-            mInvoicesRef.removeEventListener(invoicesListener);
-        }
+        if (mJobOrdersRef != null && jobOrdersListener != null) mJobOrdersRef.removeEventListener(jobOrdersListener);
+        if (mInvoicesRef != null && invoicesListener != null) mInvoicesRef.removeEventListener(invoicesListener);
     }
 }

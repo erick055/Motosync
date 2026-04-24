@@ -2,6 +2,7 @@ package com.example.motosync;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,6 +47,19 @@ public class AdminCustomersActivity extends AppCompatActivity {
         LinearLayout navManageServices = findViewById(R.id.navManageServices);
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
         LinearLayout navJobOrders = findViewById(R.id.navJobOrders);
+        LinearLayout navManageReports = findViewById(R.id.navManageReports);
+
+        SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+        String savedName = prefs.getString("FULL_NAME", "Admin Name");
+        String savedRole = prefs.getString("ROLE", "admin");
+
+        TextView tvSidebarName = findViewById(R.id.tvSidebarName);
+        TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
+        if (tvSidebarName != null) tvSidebarName.setText(savedName);
+        if (tvSidebarRole != null && savedRole.length() > 0) {
+            String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
+            tvSidebarRole.setText(displayRole + " Account");
+        }
 
         // Open Menu
         if (btnMenu != null) {
@@ -53,7 +67,10 @@ public class AdminCustomersActivity extends AppCompatActivity {
         }
         // --- ADMIN SIDEBAR CLICKS ---
         if (navAdminDashboard != null) {
-            navAdminDashboard.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
+            navAdminDashboard.setOnClickListener(v -> {
+                startActivity(new Intent(this, AdminDashboardActivity.class));
+                finish();
+            });
         }
 
         if (navManageBookings != null) {
@@ -72,14 +89,20 @@ public class AdminCustomersActivity extends AppCompatActivity {
         if (navManageCustomers != null) {
             navManageCustomers.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                startActivity(new Intent(this, AdminCustomersActivity.class));
+            });
+        }
+
+        if (navManageReports != null) {
+            navManageReports.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(this, AdminInvoicesActivity.class));
             });
         }
 
         if (navManageServices != null) {
             navManageServices.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Toast.makeText(this, "Opening Services & Pricing...", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, AdminInventoryActivity.class));
             });
         }
 

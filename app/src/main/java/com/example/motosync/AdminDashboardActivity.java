@@ -3,18 +3,43 @@ package com.example.motosync;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 public class AdminDashboardActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
+
+    // UI Elements for Data
+    private TextView tvTotalRevenue;
+    private TextView tvActiveJobs;
+    private TextView tvPendingAppointments;
+    private TextView tvTotalCustomers;
+
+    // Firebase References
+    private DatabaseReference mInvoicesRef;
+    private DatabaseReference mJobOrdersRef;
+    private DatabaseReference mAppointmentsRef;
+    private DatabaseReference mUsersRef;
+
+    // Listeners for Memory Leak Prevention
+    private ValueEventListener invoicesListener;
+    private ValueEventListener jobOrdersListener;
+    private ValueEventListener appointmentsListener;
+    private ValueEventListener usersListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,99 +49,158 @@ public class AdminDashboardActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
 
-        // Open Menu Safely
-        if (btnMenu != null) {
-            btnMenu.setOnClickListener(v -> {
-                if (drawerLayout != null) {
-                    drawerLayout.openDrawer(GravityCompat.START);
-                }
-            });
-        }
+        tvTotalRevenue = findViewById(R.id.tvTotalRevenue);
+        tvActiveJobs = findViewById(R.id.tvActiveJobs);
+        tvPendingAppointments = findViewById(R.id.tvPendingAppointments);
+        tvTotalCustomers = findViewById(R.id.tvTotalCustomers);
+        TextView tvWelcomeName = findViewById(R.id.tvWelcomeName);
 
-        // Quick Action Buttons
-        LinearLayout btnApproveOrder = findViewById(R.id.btnApproveOrder);
-        LinearLayout btnDeclineOrder = findViewById(R.id.btnDeclineOrder);
+        // Fetch user info from SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
+        String savedName = prefs.getString("FULL_NAME", "Admin");
 
-        if (btnApproveOrder != null) {
-            btnApproveOrder.setOnClickListener(v -> Toast.makeText(this, "Order Approved!", Toast.LENGTH_SHORT).show());
-        }
-        if (btnDeclineOrder != null) {
-            btnDeclineOrder.setOnClickListener(v -> Toast.makeText(this, "Order Declined", Toast.LENGTH_SHORT).show());
-        }
+        tvWelcomeName.setText("Welcome back, " + savedName + "!");
 
-        setupSidebarSafe();
+        // Update Sidebar Data
+        TextView tvSidebarName = findViewById(R.id.tvSidebarName);
+        if (tvSidebarName != null) tvSidebarName.setText(savedName);
+
+        // Menu Toggle
+        if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+
+        // =========================================================
+        // --- 100% SECURE SIDEBAR NAVIGATION (CRASH-PROOF) ---
+        // =========================================================
+
+        LinearLayout navAdminDashboard = findViewById(R.id.navAdminDashboard);
+        if(navAdminDashboard != null) navAdminDashboard.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START)); // We are already here!
+
+        LinearLayout navManageBookings = findViewById(R.id.navManageBookings);
+        if(navManageBookings != null) navManageBookings.setOnClickListener(v -> { startActivity(new Intent(AdminDashboardActivity.this, AdminAppointmentsActivity.class)); finish(); });
+
+        LinearLayout navJobOrders = findViewById(R.id.navJobOrders);
+        if(navJobOrders != null) navJobOrders.setOnClickListener(v -> { startActivity(new Intent(AdminDashboardActivity.this, AdminJobOrderActivity.class)); finish(); });
+
+        LinearLayout navManageServices = findViewById(R.id.navManageServices);
+        if(navManageServices != null) navManageServices.setOnClickListener(v -> { startActivity(new Intent(AdminDashboardActivity.this, AdminInventoryActivity.class)); finish(); });
+
+        LinearLayout navManageCustomers = findViewById(R.id.navManageCustomers);
+        if(navManageCustomers != null) navManageCustomers.setOnClickListener(v -> { startActivity(new Intent(AdminDashboardActivity.this, AdminCustomersActivity.class)); finish(); });
+
+        LinearLayout navManageReports = findViewById(R.id.navManageReports);
+        if(navManageReports != null) navManageReports.setOnClickListener(v -> { startActivity(new Intent(AdminDashboardActivity.this, AdminInvoicesActivity.class)); finish(); });
+
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
+            Toast.makeText(AdminDashboardActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(AdminDashboardActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        });
+
+        // Initialize Firebase Connections
+        mInvoicesRef = FirebaseDatabase.getInstance().getReference("Invoices");
+        mJobOrdersRef = FirebaseDatabase.getInstance().getReference("JobOrders");
+        mAppointmentsRef = FirebaseDatabase.getInstance().getReference("Appointments");
+        mUsersRef = FirebaseDatabase.getInstance().getReference("Users");
+
+        // Start fetching Live Data!
+        fetchDashboardData();
     }
 
-    private void setupSidebarSafe() {
-        // Grab all drawer layout IDs
-        LinearLayout navAdminDashboard = findViewById(R.id.navAdminDashboard);
-        LinearLayout navManageBookings = findViewById(R.id.navManageBookings);
-        LinearLayout navJobOrders = findViewById(R.id.navJobOrders);
-        LinearLayout navManageCustomers = findViewById(R.id.navManageCustomers);
-        LinearLayout navManageServices = findViewById(R.id.navManageServices);
-        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+    private void fetchDashboardData() {
 
-        // --- SAFE SIDEBAR NAVIGATION LOGIC ---
+        // 1. Fetch Total Revenue (Only count "Paid" invoices)
+        invoicesListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                double totalRevenue = 0.0;
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String status = ds.child("status").getValue(String.class);
+                    if ("Paid".equalsIgnoreCase(status)) {
+                        String amountStr = ds.child("amount").getValue(String.class);
+                        if (amountStr != null) {
+                            try {
+                                totalRevenue += Double.parseDouble(amountStr);
+                            } catch (NumberFormatException e) {
+                                // Ignore unparseable amounts so the app doesn't crash
+                            }
+                        }
+                    }
+                }
+                tvTotalRevenue.setText(String.format("₱ %,.2f", totalRevenue));
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        mInvoicesRef.addValueEventListener(invoicesListener);
 
-        // If we are already on the Dashboard, just slide the drawer closed
-        if (navAdminDashboard != null) {
-            navAdminDashboard.setOnClickListener(v -> {
-                if (drawerLayout != null) drawerLayout.closeDrawer(GravityCompat.START);
-            });
-        }
 
-        if (navManageBookings != null) {
-            navManageBookings.setOnClickListener(v -> {
-                startActivity(new Intent(this, AdminAppointmentsActivity.class));
-                finish();
-            });
-        }
+        // 2. Fetch Active Jobs (Only count "In Progress")
+        jobOrdersListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int activeCount = 0;
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String status = ds.child("status").getValue(String.class);
+                    if ("In Progress".equalsIgnoreCase(status)) {
+                        activeCount++;
+                    }
+                }
+                tvActiveJobs.setText(String.valueOf(activeCount));
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        mJobOrdersRef.addValueEventListener(jobOrdersListener);
 
-        if (navJobOrders != null) {
-            navJobOrders.setOnClickListener(v -> {
-                startActivity(new Intent(this, AdminJobOrderActivity.class));
-                finish();
-            });
-        }
 
-        if (navManageCustomers != null) {
-            navManageCustomers.setOnClickListener(v -> {
-                startActivity(new Intent(this, AdminCustomersActivity.class));
-                finish();
-            });
-        }
+        // 3. Fetch Pending Appointments
+        appointmentsListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int pendingCount = 0;
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String status = ds.child("status").getValue(String.class);
+                    if ("Pending".equalsIgnoreCase(status)) {
+                        pendingCount++;
+                    }
+                }
+                tvPendingAppointments.setText(String.valueOf(pendingCount));
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        mAppointmentsRef.addValueEventListener(appointmentsListener);
 
-        // This is your new Inventory connection!
-        if (navManageServices != null) {
-            navManageServices.setOnClickListener(v -> {
-                startActivity(new Intent(this, AdminInventoryActivity.class));
-                finish();
-            });
-        }
 
-        if (btnLogoutMenu != null) {
-            btnLogoutMenu.setOnClickListener(v -> {
-                Intent intent = new Intent(this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-            });
-        }
+        // 4. Fetch Total Customers
+        usersListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int customerCount = 0;
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String role = ds.child("role").getValue(String.class);
+                    if ("customer".equalsIgnoreCase(role)) {
+                        customerCount++;
+                    }
+                }
+                tvTotalCustomers.setText(String.valueOf(customerCount));
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        mUsersRef.addValueEventListener(usersListener);
+    }
 
-        // --- SAFE USER PROFILE INJECTION ---
-        SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
-        String savedName = prefs.getString("FULL_NAME", "Admin Name");
-        String savedRole = prefs.getString("ROLE", "admin");
-
-        TextView tvSidebarName = findViewById(R.id.tvSidebarName);
-        TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
-
-        if (tvSidebarName != null && savedName != null) {
-            tvSidebarName.setText(savedName);
-        }
-        if (tvSidebarRole != null && savedRole != null && savedRole.length() > 0) {
-            String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
-            tvSidebarRole.setText(displayRole + " Account");
-        }
+    // --- THE MEMORY LEAK KILL SWITCH ---
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mInvoicesRef != null && invoicesListener != null) mInvoicesRef.removeEventListener(invoicesListener);
+        if (mJobOrdersRef != null && jobOrdersListener != null) mJobOrdersRef.removeEventListener(jobOrdersListener);
+        if (mAppointmentsRef != null && appointmentsListener != null) mAppointmentsRef.removeEventListener(appointmentsListener);
+        if (mUsersRef != null && usersListener != null) mUsersRef.removeEventListener(usersListener);
     }
 }

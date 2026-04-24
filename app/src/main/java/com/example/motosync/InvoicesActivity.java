@@ -31,7 +31,6 @@ public class InvoicesActivity extends AppCompatActivity {
     private DataSnapshot lastJobSnapshot;
     private DataSnapshot lastInvoiceSnapshot;
 
-    // --- NEW: Variables to hold our listeners so we can kill them later ---
     private ValueEventListener jobOrdersListener;
     private ValueEventListener invoicesListener;
 
@@ -56,21 +55,22 @@ public class InvoicesActivity extends AppCompatActivity {
         TextView tvSidebarRole = findViewById(R.id.tvSidebarRole);
         if (tvSidebarName != null) tvSidebarName.setText(customerName);
         if (tvSidebarRole != null && savedRole.length() > 0) {
-            String displayRole = savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1);
-            tvSidebarRole.setText(displayRole + " Account");
+            tvSidebarRole.setText(savedRole.substring(0, 1).toUpperCase() + savedRole.substring(1) + " Account");
         }
 
         if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        findViewById(R.id.navDashboard).setOnClickListener(v -> { startActivity(new Intent(this, MainActivity.class)); finish(); });
-        findViewById(R.id.navBookService).setOnClickListener(v -> { startActivity(new Intent(this, BookingActivity.class)); finish(); });
-        findViewById(R.id.navMyVehicles).setOnClickListener(v -> { startActivity(new Intent(this, VehiclesActivity.class)); finish(); });
-        findViewById(R.id.navMyOrders).setOnClickListener(v -> { startActivity(new Intent(this, MyOrdersActivity.class)); finish(); });
+        // SAFELY ROUTE USING InvoicesActivity.this
+        findViewById(R.id.navDashboard).setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, MainActivity.class)); finish(); });
+        findViewById(R.id.navBookService).setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, BookingActivity.class)); finish(); });
+        findViewById(R.id.navMyVehicles).setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, VehiclesActivity.class)); finish(); });
+        findViewById(R.id.navMyOrders).setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, MyOrdersActivity.class)); finish(); });
         findViewById(R.id.navMyInvoices).setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
-        findViewById(R.id.navProfile).setOnClickListener(v -> { startActivity(new Intent(this, ProfileActivity.class)); finish(); });
+        findViewById(R.id.navProfile).setOnClickListener(v -> { startActivity(new Intent(InvoicesActivity.this, ProfileActivity.class)); finish(); });
+
         findViewById(R.id.btnLogoutMenu).setOnClickListener(v -> {
-            Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, LoginActivity.class);
+            Toast.makeText(InvoicesActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(InvoicesActivity.this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
@@ -80,7 +80,6 @@ public class InvoicesActivity extends AppCompatActivity {
     }
 
     private void fetchMyInvoices() {
-        // 1. Initialize and attach Job Orders Listener
         jobOrdersListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -92,7 +91,6 @@ public class InvoicesActivity extends AppCompatActivity {
         };
         mJobOrdersRef.addValueEventListener(jobOrdersListener);
 
-        // 2. Initialize and attach Invoices Listener
         invoicesListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -115,7 +113,6 @@ public class InvoicesActivity extends AppCompatActivity {
             String invEmail = ds.child("customerEmail").getValue(String.class);
 
             if (invEmail != null && customerEmail != null && invEmail.trim().equalsIgnoreCase(customerEmail.trim())) {
-
                 String invoiceId = ds.child("invoiceId").getValue(String.class);
                 String jobId = ds.child("jobOrderId").getValue(String.class);
 
@@ -145,7 +142,7 @@ public class InvoicesActivity extends AppCompatActivity {
         }
 
         if (!found) {
-            TextView noData = new TextView(this);
+            TextView noData = new TextView(InvoicesActivity.this);
             noData.setText("You have no completed invoices yet.");
             noData.setTextColor(getResources().getColor(R.color.text_secondary));
             noData.setTextSize(16f);
@@ -156,17 +153,17 @@ public class InvoicesActivity extends AppCompatActivity {
     private void addInvoiceCardToScreen(String invoiceId, String service, String amount, String status) {
         View cardView = LayoutInflater.from(this).inflate(R.layout.item_invoice, invoicesContainer, false);
 
-        ((TextView) cardView.findViewById(R.id.tvInvService)).setText(service);
-        ((TextView) cardView.findViewById(R.id.tvInvAmount)).setText("₱ " + amount);
+        ((TextView) cardView.findViewById(R.id.tvInvoiceService)).setText(service);
+        ((TextView) cardView.findViewById(R.id.tvInvoiceAmount)).setText("₱ " + amount);
 
         String shortId = invoiceId != null && invoiceId.length() > 6 ? invoiceId.substring(invoiceId.length() - 6).toUpperCase() : "12345";
-        ((TextView) cardView.findViewById(R.id.tvInvRef)).setText("Invoice Ref: #" + shortId);
+        ((TextView) cardView.findViewById(R.id.tvInvoiceId)).setText("Invoice Ref: #" + shortId);
 
-        TextView tvStatus = cardView.findViewById(R.id.tvInvStatus);
+        TextView tvStatus = cardView.findViewById(R.id.tvInvoiceStatus);
         LinearLayout btnPayNow = cardView.findViewById(R.id.btnPayNow);
 
         tvStatus.setText(status);
-        if (status.equals("Paid")) {
+        if ("Paid".equalsIgnoreCase(status)) {
             tvStatus.setBackgroundResource(R.drawable.bg_badge_completed);
             btnPayNow.setVisibility(View.GONE);
         } else {
@@ -175,24 +172,20 @@ public class InvoicesActivity extends AppCompatActivity {
         }
 
         btnPayNow.setOnClickListener(v -> {
-            Toast.makeText(this, "Processing Payment...", Toast.LENGTH_SHORT).show();
+            // FIXED CONTEXT
+            Toast.makeText(InvoicesActivity.this, "Processing Payment...", Toast.LENGTH_SHORT).show();
             mInvoicesRef.child(invoiceId).child("status").setValue("Paid").addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "Payment Successful!", Toast.LENGTH_LONG).show();
+                Toast.makeText(InvoicesActivity.this, "Payment Successful!", Toast.LENGTH_LONG).show();
             });
         });
 
         invoicesContainer.addView(cardView);
     }
 
-    // --- NEW: DESTROY LISTENERS WHEN PAGE CLOSES TO PREVENT MEMORY LEAKS ---
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mJobOrdersRef != null && jobOrdersListener != null) {
-            mJobOrdersRef.removeEventListener(jobOrdersListener);
-        }
-        if (mInvoicesRef != null && invoicesListener != null) {
-            mInvoicesRef.removeEventListener(invoicesListener);
-        }
+        if (mJobOrdersRef != null && jobOrdersListener != null) mJobOrdersRef.removeEventListener(jobOrdersListener);
+        if (mInvoicesRef != null && invoicesListener != null) mInvoicesRef.removeEventListener(invoicesListener);
     }
 }

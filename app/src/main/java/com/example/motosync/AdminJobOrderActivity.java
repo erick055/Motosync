@@ -81,17 +81,40 @@ public class AdminJobOrderActivity extends AppCompatActivity {
 
         if (btnMenu != null) btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        findViewById(R.id.navAdminDashboard).setOnClickListener(v -> { startActivity(new Intent(this, AdminDashboardActivity.class)); finish(); });
-        findViewById(R.id.navManageBookings).setOnClickListener(v -> { startActivity(new Intent(this, AdminAppointmentsActivity.class)); finish(); });
-        findViewById(R.id.navJobOrders).setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START));
-        findViewById(R.id.btnLogoutMenu).setOnClickListener(v -> {
-            Toast.makeText(this, "Logging out...", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, LoginActivity.class);
+        // =========================================================
+        // --- 100% SECURE SIDEBAR NAVIGATION (CRASH-PROOF) ---
+        // =========================================================
+
+        LinearLayout navAdminDashboard = findViewById(R.id.navAdminDashboard);
+        if(navAdminDashboard != null) navAdminDashboard.setOnClickListener(v -> { startActivity(new Intent(AdminJobOrderActivity.this, AdminDashboardActivity.class)); finish(); });
+
+        LinearLayout navManageBookings = findViewById(R.id.navManageBookings);
+        if(navManageBookings != null) navManageBookings.setOnClickListener(v -> { startActivity(new Intent(AdminJobOrderActivity.this, AdminAppointmentsActivity.class)); finish(); });
+
+        LinearLayout navJobOrders = findViewById(R.id.navJobOrders);
+        if(navJobOrders != null) navJobOrders.setOnClickListener(v -> drawerLayout.closeDrawer(GravityCompat.START)); // We are already here!
+
+        LinearLayout navManageReports = findViewById(R.id.navManageReports);
+        if(navManageReports != null) navManageReports.setOnClickListener(v -> { startActivity(new Intent(AdminJobOrderActivity.this, AdminInvoicesActivity.class)); finish(); });
+
+        // Extra Admin Pages (Just in case you added them to your XML)
+        LinearLayout navManageServices = findViewById(R.id.navManageServices);
+        if(navManageServices != null) navManageServices.setOnClickListener(v -> { startActivity(new Intent(AdminJobOrderActivity.this, AdminInventoryActivity.class)); finish(); });
+
+        LinearLayout navManageCustomers = findViewById(R.id.navManageCustomers);
+        if(navManageCustomers != null) navManageCustomers.setOnClickListener(v -> { startActivity(new Intent(AdminJobOrderActivity.this, AdminCustomersActivity.class)); finish(); });
+
+        LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
+        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
+            Toast.makeText(AdminJobOrderActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(AdminJobOrderActivity.this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });
 
+
+        // --- LOAD MECHANICS ---
         String[] mechanics = {"Select Mechanic...", "John (Engine Specialist)", "Mike (Electrical)", "Alex (General Service)"};
         ArrayAdapter<String> mechAdapter = new ArrayAdapter<>(this, R.layout.item_spinner, mechanics);
         mechAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -103,16 +126,16 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         btnCreateJobOrder.setOnClickListener(v -> {
             int selectedIndex = spinnerAppointments.getSelectedItemPosition();
             if (selectedIndex <= 0 || approvedAppointmentsList.isEmpty()) {
-                Toast.makeText(this, "Please select an approved appointment", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminJobOrderActivity.this, "Please select an approved appointment", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (spinnerMechanic.getSelectedItemPosition() == 0) {
-                Toast.makeText(this, "Please assign a mechanic", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminJobOrderActivity.this, "Please assign a mechanic", Toast.LENGTH_SHORT).show();
                 return;
             }
             String cost = etJobCost.getText().toString().trim();
             if (cost.isEmpty()) {
-                Toast.makeText(this, "Please enter an estimated cost", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminJobOrderActivity.this, "Please enter an estimated cost", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -218,7 +241,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
             mJobOrdersRef.child(jobOrderId).setValue(jobData);
             mInvoicesRef.child(invoiceId).setValue(invoiceData).addOnSuccessListener(aVoid -> {
                 mAppointmentsRef.child(appt.appointmentId).child("status").setValue("In Progress");
-                Toast.makeText(this, "Job Order & Invoice Created!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminJobOrderActivity.this, "Job Order & Invoice Created!", Toast.LENGTH_SHORT).show();
 
                 etJobCost.setText("");
                 etJobNotes.setText("");
@@ -252,7 +275,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         LinearLayout btnUpdateStatus = cardView.findViewById(R.id.btnUpdateStatus);
         btnUpdateStatus.setOnClickListener(v -> {
             String[] statusOptions = {"Pending", "In Progress", "On Hold", "Completed", "Cancelled"};
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(AdminJobOrderActivity.this);
             builder.setTitle("Update Job Status");
             builder.setItems(statusOptions, (dialog, which) -> {
                 String selectedStatus = statusOptions[which];
@@ -265,10 +288,10 @@ public class AdminJobOrderActivity extends AppCompatActivity {
 
         LinearLayout btnEditCost = cardView.findViewById(R.id.btnEditCost);
         btnEditCost.setOnClickListener(v -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(AdminJobOrderActivity.this);
             builder.setTitle("Edit Job Cost (₱)");
 
-            final EditText input = new EditText(this);
+            final EditText input = new EditText(AdminJobOrderActivity.this);
             input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
             input.setText(cost);
             int padding = (int) (20 * getResources().getDisplayMetrics().density);
