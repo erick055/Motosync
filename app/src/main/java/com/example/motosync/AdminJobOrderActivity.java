@@ -230,6 +230,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         jobData.put("invoiceId", invoiceId);
         jobData.put("appointmentId", appt.appointmentId);
         jobData.put("customerName", appt.customerName);
+        jobData.put("userId", appt.userId); // <-- SECURE TRANSFER
         jobData.put("serviceType", appt.serviceType);
         jobData.put("assignedMechanic", mechanic);
         jobData.put("cost", cost);
@@ -241,6 +242,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         invoiceData.put("jobOrderId", jobOrderId);
         invoiceData.put("customerName", appt.customerName);
         invoiceData.put("customerEmail", appt.customerEmail);
+        invoiceData.put("userId", appt.userId); // <-- SECURE TRANSFER
         invoiceData.put("serviceType", appt.serviceType);
         invoiceData.put("amount", cost);
         invoiceData.put("status", "Unpaid");

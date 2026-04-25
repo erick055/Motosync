@@ -133,39 +133,35 @@ public class BookingActivity extends AppCompatActivity {
             });
         }
 
+
         // --- SUBMIT BOOKING ---
         if (btnConfirmBooking != null) {
             btnConfirmBooking.setOnClickListener(v -> {
-                // Get the text from the Problem Description box
                 String selectedService = etProblemDescription.getText().toString().trim();
-
                 String dateStr = tvDate.getText().toString().trim();
                 String timeStr = tvTime.getText().toString().trim();
                 String selectedVehicle = spinnerVehicle.getSelectedItem().toString();
 
-                if (selectedService.isEmpty()) {
-                    Toast.makeText(BookingActivity.this, "Please describe the problem.", Toast.LENGTH_SHORT).show();
+                if (selectedService.isEmpty() || dateStr.equals("Select Date") || timeStr.equals("Select Time")) {
+                    Toast.makeText(BookingActivity.this, "Please fill out all fields.", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if (dateStr.equals("dd/mm/yyyy") || dateStr.equals("Select Date")) {
-                    Toast.makeText(BookingActivity.this, "Please select a date.", Toast.LENGTH_SHORT).show();
+                if (selectedVehicle.contains("Loading") || selectedVehicle.contains("No Vehicles")) {
+                    Toast.makeText(BookingActivity.this, "Please add a vehicle first.", Toast.LENGTH_LONG).show();
                     return;
                 }
-                if (timeStr.equals("00:00") || timeStr.equals("Select Time")) {
-                    Toast.makeText(BookingActivity.this, "Please select a time.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (selectedVehicle.equals("Loading vehicles...") || selectedVehicle.equals("No Vehicles Found (Please add one)")) {
-                    Toast.makeText(BookingActivity.this, "Please add a vehicle first in 'My Vehicles'.", Toast.LENGTH_LONG).show();
-                    return;
-                }
+
+                // GRAB THE SECURE USER ID!
+                String savedUserId = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE).getString("USER_ID", "Unknown");
 
                 String fullDateAndTime = dateStr + " at " + timeStr;
                 Toast.makeText(BookingActivity.this, "Sending Request...", Toast.LENGTH_SHORT).show();
 
                 String appointmentId = mDatabase.push().getKey();
+
+                // Add savedUserId to the Appointment constructor!
                 Appointment newAppointment = new Appointment(
-                        appointmentId, customerName, customerEmail, selectedService, selectedVehicle, fullDateAndTime, "Pending"
+                        appointmentId, customerName, customerEmail, savedUserId, selectedService, selectedVehicle, fullDateAndTime, "Pending"
                 );
 
                 if (appointmentId != null) {

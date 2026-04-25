@@ -137,8 +137,10 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                         // Save data to SharedPreferences
+
                         SharedPreferences prefs = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE);
                         SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString("USER_ID", userId); // <-- NEW SECURE KEY
                         editor.putString("FULL_NAME", user.fullName);
                         editor.putString("EMAIL", user.email);
                         editor.putString("ROLE", cleanRole);

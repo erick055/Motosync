@@ -1,9 +1,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.MotoSync" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
     <style name="Theme.MotoSync" parent="Base.Theme.MotoSync" />
+
+    <style name="Theme.MotoSync.Splash" parent="Theme.MotoSync">
+        <item name="android:windowSplashScreenBackground" tools:targetApi="31">@android:color/white</item>
+
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="31">@android:color/transparent</item>
+    </style>
 </resources>

@@ -133,7 +133,12 @@ public class MainActivity extends AppCompatActivity {
     private void fetchDashboardData() {
         if (serviceVaultContainer == null || activeRepairsContainer == null) return;
 
-        // 1. Fetch Active Repairs AND Service History
+        // Grab the secure ID we set up in Step 1
+        String savedUserId = getSharedPreferences("MotoSyncPrefs", MODE_PRIVATE).getString("USER_ID", "Unknown");
+
+        // 🚀 FIREBASE QUERY: Ask the server for ONLY this user's jobs!
+        com.google.firebase.database.Query myJobsQuery = mJobOrdersRef.orderByChild("userId").equalTo(savedUserId);
+
         dashboardListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -143,62 +148,45 @@ public class MainActivity extends AppCompatActivity {
                 boolean foundHistory = false;
                 boolean foundActive = false;
 
+                // This snapshot NOW ONLY contains records for this specific user! No filtering needed!
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    String jobCustomerName = ds.child("customerName").getValue(String.class);
                     Boolean isArchived = ds.child("isArchived").getValue(Boolean.class);
+                    String service = ds.child("serviceType").getValue(String.class);
+                    String mechanic = ds.child("assignedMechanic").getValue(String.class);
+                    String cost = ds.child("cost").getValue(String.class);
+                    String status = ds.child("status").getValue(String.class);
 
-                    // Does this belong to our customer?
-                    if (jobCustomerName != null && jobCustomerName.equalsIgnoreCase(savedName)) {
+                    if (isArchived != null && isArchived) {
+                        View rowView = LayoutInflater.from(MainActivity.this).inflate(R.layout.item_service_history_row, serviceVaultContainer, false);
+                        ((TextView) rowView.findViewById(R.id.tvRowService)).setText(service);
+                        ((TextView) rowView.findViewById(R.id.tvRowMechanic)).setText(mechanic != null ? mechanic : "Unassigned");
+                        ((TextView) rowView.findViewById(R.id.tvRowCost)).setText("₱ " + (cost != null ? cost : "0.00"));
+                        serviceVaultContainer.addView(rowView);
+                        foundHistory = true;
+                    } else {
+                        View cardView = LayoutInflater.from(MainActivity.this).inflate(R.layout.item_my_order, activeRepairsContainer, false);
+                        ((TextView) cardView.findViewById(R.id.tvOrderService)).setText(service);
+                        ((TextView) cardView.findViewById(R.id.tvOrderMechanic)).setText("Mechanic: " + (mechanic != null ? mechanic : "Unassigned"));
+                        ((TextView) cardView.findViewById(R.id.tvOrderCost)).setText("Est. Cost: " + (cost != null ? "₱ " + cost : "TBD"));
 
-                        String service = ds.child("serviceType").getValue(String.class);
-                        String mechanic = ds.child("assignedMechanic").getValue(String.class);
-                        String cost = ds.child("cost").getValue(String.class);
-                        String status = ds.child("status").getValue(String.class);
-
-                        // If it's archived, send it to the History Vault
-                        if (isArchived != null && isArchived) {
-                            View rowView = LayoutInflater.from(MainActivity.this).inflate(R.layout.item_service_history_row, serviceVaultContainer, false);
-
-                            TextView tvRowService = rowView.findViewById(R.id.tvRowService);
-                            TextView tvRowMechanic = rowView.findViewById(R.id.tvRowMechanic);
-                            TextView tvRowCost = rowView.findViewById(R.id.tvRowCost);
-
-                            if (tvRowService != null) tvRowService.setText(service);
-                            if (tvRowMechanic != null) tvRowMechanic.setText(mechanic != null ? mechanic : "Unassigned");
-                            if (tvRowCost != null) tvRowCost.setText("₱ " + (cost != null ? cost : "0.00"));
-
-                            serviceVaultContainer.addView(rowView);
-                            foundHistory = true;
-                        }
-                        // If it's NOT archived, render an Active Repair Card!
-                        else {
-                            View cardView = LayoutInflater.from(MainActivity.this).inflate(R.layout.item_my_order, activeRepairsContainer, false);
-
-                            ((TextView) cardView.findViewById(R.id.tvOrderService)).setText(service);
-                            ((TextView) cardView.findViewById(R.id.tvOrderMechanic)).setText("Mechanic: " + (mechanic != null ? mechanic : "Unassigned"));
-                            ((TextView) cardView.findViewById(R.id.tvOrderCost)).setText("Est. Cost: " + (cost != null ? "₱ " + cost : "TBD"));
-
-                            TextView tvStatus = cardView.findViewById(R.id.tvOrderStatus);
-                            if (tvStatus != null) {
-                                if (status == null) status = "Pending";
-                                tvStatus.setText(status);
-                                switch (status) {
-                                    case "Completed": tvStatus.setBackgroundResource(R.drawable.bg_badge_completed); break;
-                                    case "Declined":
-                                    case "Cancelled": tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled); break;
-                                    case "On Hold": tvStatus.setBackgroundResource(R.drawable.bg_badge_purple); break;
-                                    case "Pending": tvStatus.setBackgroundResource(R.drawable.bg_badge_pending); break;
-                                    case "In Progress": tvStatus.setBackgroundResource(R.drawable.bg_badge_primary); break;
-                                    default: tvStatus.setBackgroundResource(R.drawable.bg_badge_green); break;
-                                }
+                        TextView tvStatus = cardView.findViewById(R.id.tvOrderStatus);
+                        if (tvStatus != null) {
+                            if (status == null) status = "Pending";
+                            tvStatus.setText(status);
+                            switch (status) {
+                                case "Completed": tvStatus.setBackgroundResource(R.drawable.bg_badge_completed); break;
+                                case "Declined": case "Cancelled": tvStatus.setBackgroundResource(R.drawable.bg_badge_cancelled); break;
+                                case "On Hold": tvStatus.setBackgroundResource(R.drawable.bg_badge_purple); break;
+                                case "Pending": tvStatus.setBackgroundResource(R.drawable.bg_badge_pending); break;
+                                case "In Progress": tvStatus.setBackgroundResource(R.drawable.bg_badge_primary); break;
+                                default: tvStatus.setBackgroundResource(R.drawable.bg_badge_green); break;
                             }
-                            activeRepairsContainer.addView(cardView);
-                            foundActive = true;
                         }
+                        activeRepairsContainer.addView(cardView);
+                        foundActive = true;
                     }
                 }
 
-                // Empty state for History
                 if (!foundHistory) {
                     TextView noData = new TextView(MainActivity.this);
                     noData.setText("No Service History Found");
@@ -209,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
                     serviceVaultContainer.addView(noData);
                 }
 
-                // Empty state for Active Repairs
                 if (!foundActive) {
                     LinearLayout emptyState = new LinearLayout(MainActivity.this);
                     emptyState.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (int)(160 * getResources().getDisplayMetrics().density)));
@@ -233,13 +220,18 @@ public class MainActivity extends AppCompatActivity {
                     activeRepairsContainer.addView(emptyState);
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         };
-        mJobOrdersRef.addValueEventListener(dashboardListener);
 
-        // 2. Fetch Upcoming Appointments
+        // 🚀 VERY IMPORTANT: Attach the listener to the QUERY, not the database reference!
+        myJobsQuery.addValueEventListener(dashboardListener);
+
+        // =======================================================
+        // 🚀 FIREBASE QUERY FOR APPOINTMENTS
+        // =======================================================
+        com.google.firebase.database.Query myAppointmentsQuery = mAppointmentsRef.orderByChild("userId").equalTo(savedUserId);
+
         appointmentsListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -247,15 +239,11 @@ public class MainActivity extends AppCompatActivity {
                 String nextDate = null;
 
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    String apptCustomerName = ds.child("customerName").getValue(String.class);
-                    if (apptCustomerName != null && apptCustomerName.equalsIgnoreCase(savedName)) {
-                        String status = ds.child("status").getValue(String.class);
-
-                        if ("Pending".equals(status) || "Approved".equals(status)) {
-                            upcomingCount++;
-                            if (nextDate == null) {
-                                nextDate = ds.child("date").getValue(String.class); // Grabs the first future date found
-                            }
+                    String status = ds.child("status").getValue(String.class);
+                    if ("Pending".equals(status) || "Approved".equals(status)) {
+                        upcomingCount++;
+                        if (nextDate == null) {
+                            nextDate = ds.child("date").getValue(String.class);
                         }
                     }
                 }
@@ -272,11 +260,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         };
-        mAppointmentsRef.addValueEventListener(appointmentsListener);
+        myAppointmentsQuery.addValueEventListener(appointmentsListener);
     }
 
     // --- PREVENT MEMORY LEAKS ---

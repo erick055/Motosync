@@ -69,10 +69,8 @@
             android:exported="false" />
         <activity
             android:name=".SplashActivity"
+            android:theme="@style/Theme.MotoSync.Splash"
             android:exported="true">
-
-
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
