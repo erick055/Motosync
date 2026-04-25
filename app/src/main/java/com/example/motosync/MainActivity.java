@@ -97,15 +97,17 @@ public class MainActivity extends AppCompatActivity {
         if (navMyInvoices != null) navMyInvoices.setOnClickListener(v -> { startActivity(new Intent(MainActivity.this, InvoicesActivity.class)); finish(); });
 
         LinearLayout navProfile = findViewById(R.id.navProfile);
-        if (navProfile != null) navProfile.setOnClickListener(v -> { startActivity(new Intent(MainActivity.this, ProfileActivity.class)); finish(); });
+        if (navProfile != null) navProfile.setOnClickListener(v -> { startActivity(new Intent(MainActivity.this, ProfileActivity.class)); });
 
         LinearLayout btnLogoutMenu = findViewById(R.id.btnLogoutMenu);
-        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
-            Toast.makeText(MainActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
-            // Call the shared AuthUtils method
-            AuthUtils.logoutUser(MainActivity.this);
-        });
-
+        // Handle Logout from the Page Button
+        if (btnLogoutMenu != null) {
+            // FIX: Added setOnClickListener so it waits for you to actually click it!
+            btnLogoutMenu.setOnClickListener(v -> {
+                Toast.makeText(MainActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
+                AuthUtils.logoutUser(MainActivity.this);
+            });
+        }
         // =========================================================
         // --- QUICK ACTIONS ON DASHBOARD ---
         // =========================================================

@@ -23,21 +23,23 @@ import com.google.firebase.database.FirebaseDatabase;
 public class SignUpActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase;
-    private FirebaseAuth mAuth; // Declare FirebaseAuth
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        // Initialize Firebase Auth and Database pointing to the root node
+        // Initialize Firebase Auth and Database
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         // Find UI Elements
         EditText etFullName = findViewById(R.id.etFullName);
         EditText etSignUpEmail = findViewById(R.id.etSignUpEmail);
+        EditText etMobileNumber = findViewById(R.id.etMobileNumber); // NEW
         EditText etSignUpPassword = findViewById(R.id.etSignUpPassword);
+        EditText etConfirmPassword = findViewById(R.id.etConfirmPassword); // NEW
 
         LinearLayout btnSignUp = findViewById(R.id.btnGoToSignUp);
         TextView btnGoToSignIn = findViewById(R.id.btnGoToSignIn);
@@ -49,10 +51,12 @@ public class SignUpActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     String name = etFullName.getText().toString().trim();
                     String email = etSignUpEmail.getText().toString().trim();
+                    String mobile = etMobileNumber.getText().toString().trim();
                     String password = etSignUpPassword.getText().toString().trim();
+                    String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-                    // 1. Validation
-                    if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                    // 1. Validation for empty fields
+                    if (name.isEmpty() || email.isEmpty() || mobile.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                         Toast.makeText(SignUpActivity.this, "Please fill out all fields.", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -69,10 +73,17 @@ public class SignUpActivity extends AppCompatActivity {
                         return;
                     }
 
+                    // 2. Validate Confirm Password matches
+                    if (!password.equals(confirmPassword)) {
+                        etConfirmPassword.setError("Passwords do not match");
+                        etConfirmPassword.requestFocus();
+                        return;
+                    }
+
                     Toast.makeText(SignUpActivity.this, "Registering...", Toast.LENGTH_SHORT).show();
 
-                    // 2. Register with hardcoded "customer" role for security
-                    registerUser(name, email, password, "customer");
+                    // 3. Pass mobile string directly into the registration method
+                    registerUser(name, email, mobile, password, "customer");
                 }
             });
         }
@@ -88,8 +99,9 @@ public class SignUpActivity extends AppCompatActivity {
         }
     }
 
-    private void registerUser(String name, String email, String password, String role) {
-        // 3. Create User in Firebase Authentication (Secures the password)
+    // Notice we added String mobile to the parameters here!
+    private void registerUser(String name, String email, String mobile, String password, String role) {
+        // 4. Create User in Firebase Authentication (Secures the password)
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
@@ -98,14 +110,14 @@ public class SignUpActivity extends AppCompatActivity {
                             FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
                             if (firebaseUser != null) {
-                                // 4. Send Verification Email
+                                // 5. Send Verification Email
                                 firebaseUser.sendEmailVerification();
 
-                                // 5. Save extra user data in Realtime Database using Auth UID
+                                // 6. Save extra user data in Realtime Database using Auth UID
                                 String userId = firebaseUser.getUid();
 
-                                // Create the User object (Make sure password is removed from User.java)
-                                User newUser = new User(name, email, role);
+                                // Create the User object including the Mobile Number
+                                User newUser = new User(name, email, mobile, role);
 
                                 mDatabase.child("Users").child(userId).setValue(newUser)
                                         .addOnCompleteListener(new OnCompleteListener<Void>() {

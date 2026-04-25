@@ -42,6 +42,7 @@ public class LoginActivity extends AppCompatActivity {
         EditText etLoginPassword = findViewById(R.id.etPassword);
         LinearLayout btnLogin = findViewById(R.id.btnSignIn);
         TextView btnGoToSignUp = findViewById(R.id.btnGoToSignUp);
+        TextView btnForgotPassword = findViewById(R.id.btnForgotPassword);
 
         // Tabs
         TextView tabCustomer = findViewById(R.id.tabCustomer);
@@ -108,6 +109,11 @@ public class LoginActivity extends AppCompatActivity {
         if (btnGoToSignUp != null) {
             btnGoToSignUp.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, SignUpActivity.class)));
         }
+
+        if (btnForgotPassword != null) {
+            btnForgotPassword.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
+        }
+
     }
 
     // Helper method to pull the remaining user data (like role) from Realtime DB
