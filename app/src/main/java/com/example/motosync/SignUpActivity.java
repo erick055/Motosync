@@ -34,12 +34,14 @@ public class SignUpActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        // Find UI Elements
-        EditText etFullName = findViewById(R.id.etFullName);
+        // --- NEW: Find the separated First and Last Name elements ---
+        EditText etFirstName = findViewById(R.id.etFirstName);
+        EditText etLastName = findViewById(R.id.etLastName);
+
         EditText etSignUpEmail = findViewById(R.id.etSignUpEmail);
-        EditText etMobileNumber = findViewById(R.id.etMobileNumber); // NEW
+        EditText etMobileNumber = findViewById(R.id.etMobileNumber);
         EditText etSignUpPassword = findViewById(R.id.etSignUpPassword);
-        EditText etConfirmPassword = findViewById(R.id.etConfirmPassword); // NEW
+        EditText etConfirmPassword = findViewById(R.id.etConfirmPassword);
 
         LinearLayout btnSignUp = findViewById(R.id.btnGoToSignUp);
         TextView btnGoToSignIn = findViewById(R.id.btnGoToSignIn);
@@ -49,14 +51,18 @@ public class SignUpActivity extends AppCompatActivity {
             btnSignUp.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String name = etFullName.getText().toString().trim();
+
+                    // Pull the separated names
+                    String fName = etFirstName.getText().toString().trim();
+                    String lName = etLastName.getText().toString().trim();
+
                     String email = etSignUpEmail.getText().toString().trim();
                     String mobile = etMobileNumber.getText().toString().trim();
                     String password = etSignUpPassword.getText().toString().trim();
                     String confirmPassword = etConfirmPassword.getText().toString().trim();
 
                     // 1. Validation for empty fields
-                    if (name.isEmpty() || email.isEmpty() || mobile.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                    if (fName.isEmpty() || lName.isEmpty() || email.isEmpty() || mobile.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                         Toast.makeText(SignUpActivity.this, "Please fill out all fields.", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -67,8 +73,10 @@ public class SignUpActivity extends AppCompatActivity {
                         return;
                     }
 
-                    if (password.length() < 6) {
-                        etSignUpPassword.setError("Password must be at least 6 characters");
+                    // Strong Password Validation
+                    String passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!_]).{8,}$";
+                    if (!password.matches(passwordPattern)) {
+                        etSignUpPassword.setError("Password must be at least 8 chars, contain an uppercase, a number, and a special character");
                         etSignUpPassword.requestFocus();
                         return;
                     }
@@ -82,8 +90,11 @@ public class SignUpActivity extends AppCompatActivity {
 
                     Toast.makeText(SignUpActivity.this, "Registering...", Toast.LENGTH_SHORT).show();
 
-                    // 3. Pass mobile string directly into the registration method
-                    registerUser(name, email, mobile, password, "customer");
+                    // --- THE TRICK: Combine them right before saving to keep your database structure intact! ---
+                    String combinedFullName = fName + " " + lName;
+
+                    // Pass the combined name string to the database
+                    registerUser(combinedFullName, email, mobile, password, "customer");
                 }
             });
         }
@@ -99,7 +110,6 @@ public class SignUpActivity extends AppCompatActivity {
         }
     }
 
-    // Notice we added String mobile to the parameters here!
     private void registerUser(String name, String email, String mobile, String password, String role) {
         // 4. Create User in Firebase Authentication (Secures the password)
         mAuth.createUserWithEmailAndPassword(email, password)
@@ -116,7 +126,7 @@ public class SignUpActivity extends AppCompatActivity {
                                 // 6. Save extra user data in Realtime Database using Auth UID
                                 String userId = firebaseUser.getUid();
 
-                                // Create the User object including the Mobile Number
+                                // Create the User object including the combined Full Name
                                 User newUser = new User(name, email, mobile, role);
 
                                 mDatabase.child("Users").child(userId).setValue(newUser)

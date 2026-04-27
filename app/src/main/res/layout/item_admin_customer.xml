@@ -35,10 +35,10 @@
         android:layout_marginTop="4dp"/>
 
     <TextView
-        android:id="@+id/tvRegisteredDate"
+        android:id="@+id/tvCustomerMobile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Registered: Oct 24, 2026"
+        android:text="Mobile: 09123456789"
         android:textColor="@color/text_secondary"
         android:textSize="14sp"
         android:layout_marginTop="4dp"/>
@@ -47,7 +47,7 @@
         android:id="@+id/tvCustomerVehicle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Vehicle: Yamaha R1"
+        android:text="Vehicle: Loading..."
         android:textColor="@color/teal_accent"
         android:textSize="14sp"
         android:textStyle="bold"

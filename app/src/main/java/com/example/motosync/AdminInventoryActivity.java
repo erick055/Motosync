@@ -182,11 +182,44 @@ public class AdminInventoryActivity extends AppCompatActivity {
 
         if (btnRestock != null) {
             btnRestock.setOnClickListener(v -> {
-                int newStock = item.stockCount + 5;
-                if (item.itemId != null) {
-                    mDatabase.child(item.itemId).child("stockCount").setValue(newStock)
-                            .addOnSuccessListener(aVoid -> Toast.makeText(AdminInventoryActivity.this, "Restocked +5", Toast.LENGTH_SHORT).show());
-                }
+                AlertDialog.Builder builder = new AlertDialog.Builder(AdminInventoryActivity.this);
+                builder.setTitle("Restock " + item.itemName);
+                builder.setMessage("Enter the quantity of new stock to add:");
+
+                // Create an input field for the admin to type a number
+                final EditText input = new EditText(AdminInventoryActivity.this);
+                input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+                input.setHint("e.g., 10");
+
+                // Add some padding so it looks nice inside the popup
+                int padding = (int) (20 * getResources().getDisplayMetrics().density);
+                input.setPadding(padding, padding, padding, padding);
+                builder.setView(input);
+
+                // Setup the Add Button
+                builder.setPositiveButton("Add to Stock", (dialog, which) -> {
+                    String amountStr = input.getText().toString().trim();
+                    if (!amountStr.isEmpty()) {
+                        try {
+                            int amountToAdd = Integer.parseInt(amountStr);
+                            int newStock = item.stockCount + amountToAdd; // Dynamically add what the admin typed
+
+                            if (item.itemId != null) {
+                                mDatabase.child(item.itemId).child("stockCount").setValue(newStock)
+                                        .addOnSuccessListener(aVoid -> Toast.makeText(AdminInventoryActivity.this, "Added " + amountToAdd + " to stock!", Toast.LENGTH_SHORT).show());
+                            }
+                        } catch (NumberFormatException e) {
+                            Toast.makeText(AdminInventoryActivity.this, "Invalid number", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(AdminInventoryActivity.this, "Amount cannot be empty", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                // Setup the Cancel Button
+                builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+                builder.show();
             });
         }
 

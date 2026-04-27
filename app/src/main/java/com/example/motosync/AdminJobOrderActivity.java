@@ -37,7 +37,8 @@ public class AdminJobOrderActivity extends AppCompatActivity {
     private DatabaseReference mInvoicesRef;
 
     private Spinner spinnerAppointments;
-    private Spinner spinnerMechanic;
+    // --- CHANGED: Replaced Spinner with EditText ---
+    private EditText etMechanicName;
     private EditText etJobNotes;
     private EditText etJobCost;
     private LinearLayout jobOrdersContainer;
@@ -61,7 +62,10 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         ImageView btnMenu = findViewById(R.id.btnMenu);
         spinnerAppointments = findViewById(R.id.spinnerAppointments);
-        spinnerMechanic = findViewById(R.id.spinnerMechanic);
+
+        // --- CHANGED: Targeting the new EditText in your XML ---
+        etMechanicName = findViewById(R.id.etMechanicName);
+
         etJobNotes = findViewById(R.id.etJobNotes);
         etJobCost = findViewById(R.id.etJobCost);
         LinearLayout btnCreateJobOrder = findViewById(R.id.btnCreateJobOrder);
@@ -97,7 +101,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         LinearLayout navManageReports = findViewById(R.id.navManageReports);
         if(navManageReports != null) navManageReports.setOnClickListener(v -> { startActivity(new Intent(AdminJobOrderActivity.this, AdminInvoicesActivity.class)); finish(); });
 
-        // Extra Admin Pages (Just in case you added them to your XML)
+        // Extra Admin Pages
         LinearLayout navManageServices = findViewById(R.id.navManageServices);
         if(navManageServices != null) navManageServices.setOnClickListener(v -> { startActivity(new Intent(AdminJobOrderActivity.this, AdminInventoryActivity.class)); finish(); });
 
@@ -117,13 +121,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
             AuthUtils.logoutUser(AdminJobOrderActivity.this);
         });
 
-
-        // --- LOAD MECHANICS ---
-        String[] mechanics = {"Select Mechanic...", "John (Engine Specialist)", "Mike (Electrical)", "Alex (General Service)"};
-        ArrayAdapter<String> mechAdapter = new ArrayAdapter<>(this, R.layout.item_spinner, mechanics);
-        mechAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerMechanic.setAdapter(mechAdapter);
-
+        // Load data from Firebase
         loadApprovedAppointments();
         fetchJobOrders();
 
@@ -133,10 +131,14 @@ public class AdminJobOrderActivity extends AppCompatActivity {
                 Toast.makeText(AdminJobOrderActivity.this, "Please select an approved appointment", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (spinnerMechanic.getSelectedItemPosition() == 0) {
-                Toast.makeText(AdminJobOrderActivity.this, "Please assign a mechanic", Toast.LENGTH_SHORT).show();
+
+            // --- CHANGED: Check if the Mechanic text box is empty ---
+            String mechanic = etMechanicName.getText().toString().trim();
+            if (mechanic.isEmpty()) {
+                Toast.makeText(AdminJobOrderActivity.this, "Please type a mechanic name", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             String cost = etJobCost.getText().toString().trim();
             if (cost.isEmpty()) {
                 Toast.makeText(AdminJobOrderActivity.this, "Please enter an estimated cost", Toast.LENGTH_SHORT).show();
@@ -144,9 +146,9 @@ public class AdminJobOrderActivity extends AppCompatActivity {
             }
 
             Appointment selectedAppt = approvedAppointmentsList.get(selectedIndex - 1);
-            String mechanic = spinnerMechanic.getSelectedItem().toString();
             String notes = etJobNotes.getText().toString();
 
+            // Pass the string typed by the admin directly into the database method
             createJobOrderAndInvoice(selectedAppt, mechanic, cost, notes);
         });
     }
@@ -195,7 +197,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
                 }
 
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    // THE MAGIC TRICK: Skip this job if it has been pushed to history!
+                    // Skip this job if it has been pushed to history
                     Boolean isArchived = ds.child("isArchived").getValue(Boolean.class);
                     if (isArchived != null && isArchived) continue;
 
@@ -230,7 +232,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         jobData.put("invoiceId", invoiceId);
         jobData.put("appointmentId", appt.appointmentId);
         jobData.put("customerName", appt.customerName);
-        jobData.put("userId", appt.userId); // <-- SECURE TRANSFER
+        jobData.put("userId", appt.userId);
         jobData.put("serviceType", appt.serviceType);
         jobData.put("assignedMechanic", mechanic);
         jobData.put("cost", cost);
@@ -242,7 +244,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
         invoiceData.put("jobOrderId", jobOrderId);
         invoiceData.put("customerName", appt.customerName);
         invoiceData.put("customerEmail", appt.customerEmail);
-        invoiceData.put("userId", appt.userId); // <-- SECURE TRANSFER
+        invoiceData.put("userId", appt.userId);
         invoiceData.put("serviceType", appt.serviceType);
         invoiceData.put("amount", cost);
         invoiceData.put("status", "Unpaid");
@@ -253,9 +255,10 @@ public class AdminJobOrderActivity extends AppCompatActivity {
                 mAppointmentsRef.child(appt.appointmentId).child("status").setValue("In Progress");
                 Toast.makeText(AdminJobOrderActivity.this, "Job Order & Invoice Created!", Toast.LENGTH_SHORT).show();
 
+                // --- CHANGED: Clear text inputs after creating successfully ---
                 etJobCost.setText("");
                 etJobNotes.setText("");
-                spinnerMechanic.setSelection(0);
+                etMechanicName.setText(""); // Resets the mechanic typing field
             });
         }
     }
@@ -282,7 +285,7 @@ public class AdminJobOrderActivity extends AppCompatActivity {
             default: tvStatus.setBackgroundResource(R.drawable.bg_badge_green); break;
         }
 
-        // --- NEW: THE PUSH TO HISTORY BUTTON ---
+        // --- THE PUSH TO HISTORY BUTTON ---
         LinearLayout btnArchiveJob = cardView.findViewById(R.id.btnArchiveJob);
         if ("Completed".equalsIgnoreCase(status)) {
             btnArchiveJob.setVisibility(View.VISIBLE);

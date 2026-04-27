@@ -113,7 +113,7 @@ public class AdminCustomersActivity extends AppCompatActivity {
         });
 
         // Handle Logout
-        if(btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
+        if (btnLogoutMenu != null) btnLogoutMenu.setOnClickListener(v -> {
             Toast.makeText(AdminCustomersActivity.this, "Logging out...", Toast.LENGTH_SHORT).show();
             // Call the shared AuthUtils method
             AuthUtils.logoutUser(AdminCustomersActivity.this);
@@ -138,17 +138,14 @@ public class AdminCustomersActivity extends AppCompatActivity {
                         String name = userSnapshot.child("fullName").getValue(String.class);
                         String email = userSnapshot.child("email").getValue(String.class);
 
-                        // If you store dates and vehicles in the User node, fetch them here.
-                        // Using fallbacks if they are null.
-                        String date = userSnapshot.child("registeredDate").getValue(String.class);
-                        String vehicle = userSnapshot.child("vehicle").getValue(String.class);
+                        // Pull the mobile number instead of the date
+                        String mobile = userSnapshot.child("mobileNumber").getValue(String.class);
 
                         addCustomerCardToScreen(
                                 id,
                                 name != null ? name : "Unknown Name",
                                 email != null ? email : "No Email",
-                                date != null ? date : "N/A",
-                                vehicle != null ? vehicle : "No Vehicle Registered"
+                                mobile != null ? mobile : "No Mobile"
                         );
                         hasClients = true;
                     }
@@ -169,19 +166,56 @@ public class AdminCustomersActivity extends AppCompatActivity {
         });
     }
 
-    private void addCustomerCardToScreen(String id, String name, String email, String date, String vehicle) {
+    // Notice we are passing 'mobile' here now instead of 'date' and 'vehicle'
+    private void addCustomerCardToScreen(String id, String name, String email, String mobile) {
         View cardView = LayoutInflater.from(this).inflate(R.layout.item_admin_customer, customersContainer, false);
 
         ((TextView) cardView.findViewById(R.id.tvCustomerName)).setText(name);
         ((TextView) cardView.findViewById(R.id.tvCustomerId)).setText("ID: " + id);
         ((TextView) cardView.findViewById(R.id.tvCustomerEmail)).setText("Email: " + email);
-        ((TextView) cardView.findViewById(R.id.tvRegisteredDate)).setText("Registered: " + date);
-        ((TextView) cardView.findViewById(R.id.tvCustomerVehicle)).setText("Vehicle: " + vehicle);
+
+        // Use tvCustomerMobile here! No more tvRegisteredDate
+        ((TextView) cardView.findViewById(R.id.tvCustomerMobile)).setText("Mobile: " + mobile);
+
+        TextView tvVehicle = cardView.findViewById(R.id.tvCustomerVehicle);
+        tvVehicle.setText("Loading vehicles...");
+
+        // Dynamically search the Vehicles node for motorcycles owned by this user
+        DatabaseReference vehiclesRef = FirebaseDatabase.getInstance().getReference("Vehicles");
+        vehiclesRef.orderByChild("customerName").equalTo(name).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    StringBuilder vehiclesList = new StringBuilder("Vehicles: ");
+                    long totalVehicles = snapshot.getChildrenCount();
+                    int count = 0;
+
+                    for (DataSnapshot vehicleSnap : snapshot.getChildren()) {
+                        String brand = vehicleSnap.child("brand").getValue(String.class);
+                        String model = vehicleSnap.child("model").getValue(String.class);
+                        vehiclesList.append(brand).append(" ").append(model);
+
+                        count++;
+                        if (count < totalVehicles) {
+                            vehiclesList.append(", "); // Add a comma between multiple bikes
+                        }
+                    }
+                    tvVehicle.setText(vehiclesList.toString());
+                } else {
+                    tvVehicle.setText("Vehicles: None Registered");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                tvVehicle.setText("Vehicles: Error Loading");
+            }
+        });
 
         TextView btnDelete = cardView.findViewById(R.id.btnDeleteCustomer);
 
         btnDelete.setOnClickListener(v -> {
-            new AlertDialog.Builder(AdminCustomersActivity.this)
+            new android.app.AlertDialog.Builder(AdminCustomersActivity.this)
                     .setTitle("Delete Client")
                     .setMessage("Are you sure you want to permanently remove " + name + " from the directory? This action cannot be undone.")
                     .setPositiveButton("Delete", (dialog, which) -> {

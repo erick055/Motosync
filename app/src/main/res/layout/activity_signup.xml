@@ -33,7 +33,19 @@
         android:gravity="center_vertical"
         android:layout_marginBottom="16dp">
         <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_myplaces" app:tint="@color/text_secondary" android:layout_marginEnd="12dp"/>
-        <EditText android:id="@+id/etFullName" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@android:color/transparent" android:hint="Full Name" android:textColorHint="@color/text_secondary" android:textColor="@color/text_primary" android:inputType="textPersonName" android:textSize="16sp"/>
+        <EditText android:id="@+id/etFirstName" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@android:color/transparent" android:hint="First Name" android:textColorHint="@color/text_secondary" android:textColor="@color/text_primary" android:inputType="textPersonName" android:textSize="16sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_edittext_dark"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_myplaces" app:tint="@color/text_secondary" android:layout_marginEnd="12dp"/>
+        <EditText android:id="@+id/etLastName" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@android:color/transparent" android:hint="Last Name" android:textColorHint="@color/text_secondary" android:textColor="@color/text_primary" android:inputType="textPersonName" android:textSize="16sp"/>
     </LinearLayout>
 
     <LinearLayout
